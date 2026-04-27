@@ -3,15 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>인천국제공항 주차 현황</title>
+<title>?몄쿇援?젣怨듯빆 二쇱감 ?꾪솴</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Oswald:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --navy:#0a1628;--blue:#1e5fbd;--sky:#3399ff;--sky-light:#66bbff;
-    --gold:#f0b400;--green:#00cc77;--orange:#ff6633;--red:#ff2244;
-    --white:#f0f6ff;--muted:#7a9cc0;
-    --card-bg:rgba(15,32,68,0.85);--border:rgba(51,153,255,0.2);
-  }
+  :root{--navy:#0a1628;--blue:#1e5fbd;--sky:#3399ff;--sky-light:#66bbff;--gold:#f0b400;--green:#00cc77;--orange:#ff6633;--red:#ff2244;--white:#f0f6ff;--muted:#7a9cc0;--card-bg:rgba(15,32,68,0.85);--border:rgba(51,153,255,0.2);}
   *{margin:0;padding:0;box-sizing:border-box;}
   body{font-family:'Noto Sans KR',sans-serif;background:var(--navy);color:var(--white);min-height:100vh;overflow-x:hidden;}
   body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(51,153,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(51,153,255,0.04) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
@@ -83,193 +78,206 @@
   .badge-warn{background:rgba(255,102,51,0.12);color:var(--orange);border:1px solid rgba(255,102,51,0.3);}
   .badge-full{background:rgba(255,34,68,0.12);color:var(--red);border:1px solid rgba(255,34,68,0.3);}
   .badge-closed{background:rgba(120,130,150,0.1);color:var(--muted);border:1px solid rgba(120,130,150,0.2);}
-  .notice{background:rgba(240,180,0,0.08);border:1px solid rgba(240,180,0,0.25);border-radius:10px;padding:12px 18px;margin-bottom:20px;font-size:12px;color:var(--gold);line-height:1.7;}
+  .notice{background:rgba(51,153,255,0.06);border:1px solid rgba(51,153,255,0.2);border-radius:10px;padding:10px 16px;margin-bottom:20px;font-size:11px;color:var(--muted);line-height:1.7;}
   footer{position:relative;z-index:1;text-align:center;padding:16px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);}
-  @media(max-width:600px){header{padding:14px 16px;}main{padding:20px 16px;}.header-title h1{font-size:16px;}}
+  @media(max-width:600px){header{padding:14px 16px;}main{padding:20px 16px;}.header-title h1{font-size:16px;}.parking-grid{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
 <header>
   <div class="header-left">
-    <div class="logo-icon">✈</div>
+    <div class="logo-icon">??/div>
     <div class="header-title">
       <h1>INCHEON AIRPORT PARKING</h1>
-      <p>인천국제공항 실시간 주차 현황</p>
+      <p>?몄쿇援?젣怨듯빆 ?ㅼ떆媛?二쇱감 ?꾪솴</p>
     </div>
   </div>
   <div class="header-right">
     <div class="live-badge"><div class="live-dot"></div>LIVE</div>
-    <div class="update-time"><span id="updateTime">--:--:--</span>데이터 기준 시각</div>
-    <button class="refresh-btn" id="refreshBtn" onclick="loadData()">↻ 새로고침</button>
+    <div class="update-time"><span id="updateTime">--:--:--</span>?곗씠??湲곗? ?쒓컖</div>
+    <button class="refresh-btn" id="refreshBtn" onclick="loadData()">???덈줈怨좎묠</button>
   </div>
 </header>
-
 <main>
   <div id="loadingState" class="state-box">
     <div class="spinner"></div>
-    <div class="state-msg">주차 현황 데이터를 불러오는 중입니다…</div>
+    <div class="state-msg">二쇱감 ?꾪솴 ?곗씠?곕? 遺덈윭?ㅻ뒗 以묒엯?덈떎??/div>
   </div>
   <div id="errorState" class="state-box hidden">
-    <div style="font-size:36px;margin-bottom:14px;">⚠️</div>
+    <div style="font-size:36px;margin-bottom:14px;">?좑툘</div>
     <div class="state-msg" id="errorMsg"></div>
-    <button class="retry-btn" onclick="loadData()">다시 시도</button>
+    <button class="retry-btn" onclick="loadData()">?ㅼ떆 ?쒕룄</button>
   </div>
   <div id="mainContent" class="hidden">
-    <div class="notice" id="cacheNotice" style="display:none">
-      ⏱ 데이터는 GitHub Actions가 5분마다 자동 갱신합니다. 최신 데이터: <span id="cacheAge"></span>
-    </div>
+    <div class="notice">??GitHub Actions媛 5遺꾨쭏???먮룞?쇰줈 ?곗씠?곕? 媛깆떊?⑸땲?? 留덉?留?媛깆떊: <span id="updateTime2">--</span></div>
     <div class="summary-row">
-      <div class="summary-card t1"><div class="summary-icon">🅿</div><div class="summary-label">제 1 여객터미널 · T1</div><div class="summary-value" id="t1Rate">--%</div><div class="summary-sub" id="t1Sub">-- / -- 면</div></div>
-      <div class="summary-card t2"><div class="summary-icon">🅿</div><div class="summary-label">제 2 여객터미널 · T2</div><div class="summary-value" id="t2Rate">--%</div><div class="summary-sub" id="t2Sub">-- / -- 면</div></div>
-      <div class="summary-card total"><div class="summary-icon">📊</div><div class="summary-label">전체 주차장 현황</div><div class="summary-value" id="totalRate">--%</div><div class="summary-sub" id="totalSub">-- / -- 면</div></div>
+      <div class="summary-card t1"><div class="summary-icon">?끏</div><div class="summary-label">??1 ?ш컼?곕???쨌 T1</div><div class="summary-value" id="t1Rate">--%</div><div class="summary-sub" id="t1Sub">-- / -- 硫?/div></div>
+      <div class="summary-card t2"><div class="summary-icon">?끏</div><div class="summary-label">??2 ?ш컼?곕???쨌 T2</div><div class="summary-value" id="t2Rate">--%</div><div class="summary-sub" id="t2Sub">-- / -- 硫?/div></div>
+      <div class="summary-card total"><div class="summary-icon">?뱤</div><div class="summary-label">?꾩껜 二쇱감???꾪솴</div><div class="summary-value" id="totalRate">--%</div><div class="summary-sub" id="totalSub">-- / -- 硫?/div></div>
     </div>
     <div class="tab-row">
-      <button class="tab-btn active" onclick="filterTab('all',this)">전체</button>
-      <button class="tab-btn" onclick="filterTab('T1',this)">T1 제1터미널</button>
-      <button class="tab-btn" onclick="filterTab('T2',this)">T2 제2터미널</button>
+      <button class="tab-btn active" onclick="filterTab('all',this)">?꾩껜</button>
+      <button class="tab-btn" onclick="filterTab('T1',this)">T1 ???곕???/button>
+      <button class="tab-btn" onclick="filterTab('T2',this)">T2 ???곕???/button>
     </div>
-    <div id="t1Section"><div class="section-title">T1 제1여객터미널</div><div class="parking-grid" id="t1Grid"></div></div>
-    <div id="t2Section"><div class="section-title">T2 제2여객터미널</div><div class="parking-grid" id="t2Grid"></div></div>
+    <div id="t1Section"><div class="section-title">T1 ???ш컼?곕???/div><div class="parking-grid" id="t1Grid"></div></div>
+    <div id="t2Section"><div class="section-title">T2 ???ш컼?곕???/div><div class="parking-grid" id="t2Grid"></div></div>
   </div>
 </main>
-<footer>데이터 출처: 공공데이터포털 · 인천국제공항공사 주차 현황 조회 서비스 &nbsp;|&nbsp; GitHub Actions 5분 갱신</footer>
+<footer>?곗씠??異쒖쿂: 怨듦났?곗씠?고룷??쨌 ?몄쿇援?젣怨듯빆怨듭궗 二쇱감 ?꾪솴 議고쉶 ?쒕퉬??&nbsp;|&nbsp; GitHub Actions 5遺??먮룞 媛깆떊</footer>
 
 <script>
-// ── 확정 주차면수 (실측 기준) ─────────────────────────────
-var FIXED_AREA = {
-  'T1 단기주차장 지상층':  855,
-  'T1 단기주차장 지하1층': 2117,
-  'T1 단기주차장 지하2층': 1730,
-  'T1 장기 P1 주차장':    2762,
-  'T1 장기 P2 주차장':    2592,
-  'T1 장기 P3 주차장':    2158,
-  'T1 장기 P4 주차장':    2554,
-  'T1 장기 P1 주차타워':  1374,
-  'T1 장기 P2 주차타워':     0,
-  'T1 P5 예약주차장':        0,
-  'T2 단기주차장지하M층':   980,
-  'T2 단기주차장지상1층':  1200,
-  'T2 단기주차장지상2층':  1200,
-  'T2 단기주차장지상3층':  1180,
-  'T2 단기주차장지상4층':   975,
-  'T2 장기주차장':         6751,
-  'T2 P1 장기주차타워':    1744,
-  'T2 P2 장기주차타워':    1744,
-  'T2 예약주차장':            0,
-};
-function getFixedArea(floor) {
-  return FIXED_AREA.hasOwnProperty(floor) ? FIXED_AREA[floor] : null;
-}
-
-// ── 데이터 fetch — 같은 도메인 JSON (CORS 없음) ───────────
+// ?? ?곗씠??濡쒕뱶 (媛숈? ?꾨찓??JSON ??CORS ?놁쓬) ????????????
 async function fetchData() {
-  // parking.json 은 GitHub Actions가 5분마다 갱신
-  var res = await fetch('/incheon-parking/parking.json?t=' + new Date().getTime());
-  if (!res.ok) throw new Error('parking.json 로드 실패: ' + res.status);
+  var res = await fetch('/incheon-parking/parking.json?' + new Date().getTime());
+  if (!res.ok) throw new Error('parking.json 濡쒕뱶 ?ㅽ뙣 (status: ' + res.status + ')');
   var data = await res.json();
 
-  // JSON 구조 파싱
-  var item = data.response && data.response.body && data.response.body.items && data.response.body.items.item;
-  if (!item) throw new Error('데이터 구조 오류');
-  var items = Array.isArray(item) ? item : [item];
-  if (!items.length) throw new Error('항목 없음');
+  // ?ㅼ젣 ?묐떟 援ъ“: response.body.items (諛곗뿴)
+  var body = data.response && data.response.body;
+  if (!body) throw new Error('?묐떟 援ъ“ ?ㅻ쪟: response.body ?놁쓬');
+
+  var items = body.items;
+  if (!items || !Array.isArray(items) || items.length === 0)
+    throw new Error('二쇱감 ?곗씠???놁쓬 (totalCount: ' + body.totalCount + ')');
+
   return items;
 }
 
-// ── 렌더링 ────────────────────────────────────────────────
-function getTerm(f){ return /^T1/i.test(f)?'T1':/^T2/i.test(f)?'T2':'OTHER'; }
-function getRate(p,a){ return (!a||a<=0)?null:Math.min(100,Math.round((Math.abs(p)/a)*100)); }
-function getColor(r){ return r===null?'#4a5568':r>=95?'#ff2244':r>=80?'#ff6633':r>=60?'#f0b400':'#00cc77'; }
-function badge(r,a){
-  if(!a||a<=0) return '<span class="status-badge badge-closed">미운영</span>';
-  if(r>=95) return '<span class="status-badge badge-full">만차</span>';
-  if(r>=80) return '<span class="status-badge badge-warn">혼잡</span>';
-  return '<span class="status-badge badge-ok">여유</span>';
+// ?? ?곕???遺꾨쪟 ????????????????????????????????????????????
+function getTerm(f) { return /^T1/i.test(f) ? 'T1' : /^T2/i.test(f) ? 'T2' : 'OTHER'; }
+
+// ?? 二쇱감??怨꾩궛 ????????????????????????????????????????????
+function getRate(p, a) {
+  if (!a || a <= 0) return null;
+  return Math.min(100, Math.round((p / a) * 100));
 }
-function gauge(r,c){
-  var rad=27,circ=2*Math.PI*rad,off=r!==null?circ*(1-r/100):circ;
-  return '<div class="gauge-circle"><svg width="64" height="64" viewBox="0 0 64 64">'+
-    '<circle class="gauge-bg" cx="32" cy="32" r="'+rad+'"/>'+
-    '<circle class="gauge-fill" cx="32" cy="32" r="'+rad+'" stroke="'+c+'" stroke-dasharray="'+circ+'" stroke-dashoffset="'+off+'" style="filter:drop-shadow(0 0 4px '+c+'66)"/>'+
-    '</svg><div class="gauge-text"><span class="gauge-pct" style="color:'+c+'">'+(r!==null?r:'--')+'</span><span class="gauge-pct-unit">%</span></div></div>';
+function getColor(r) {
+  return r === null ? '#4a5568' : r >= 95 ? '#ff2244' : r >= 80 ? '#ff6633' : r >= 60 ? '#f0b400' : '#00cc77';
 }
-function buildCard(item){
-  var floor=item.floor||'';
-  var p=Math.abs(parseInt(item.parking)||0);
-  var fa=getFixedArea(floor);
-  var a=(fa!==null)?fa:(parseInt(item.parkingarea)||0);
-  var av=Math.max(0,a-p),r=getRate(p,a),c=getColor(r),term=getTerm(floor);
-  var cls='parking-card'+(!a?' closed':r>=95?' full':r>=80?' near-full':'');
-  var tag='<span class="terminal-tag '+(term==='T1'?'t1-tag':'t2-tag')+'">'+term+'</span>';
-  var name=floor.replace(/^T[12]\s*/i,'');
-  return '<div class="'+cls+'"><div class="card-floor">'+tag+name+'</div>'+
-    '<div class="card-gauge">'+gauge(r,c)+
-    '<div class="card-stats">'+
-    '<div class="stat-row"><span class="stat-label">주차 대수</span><span class="stat-value sv-parked">'+p.toLocaleString()+'</span></div>'+
-    '<div class="stat-row"><span class="stat-label">전체 면수</span><span class="stat-value sv-total">'+a.toLocaleString()+'</span></div>'+
-    '<div class="stat-row"><span class="stat-label">여유 면수</span><span class="stat-value sv-avail">'+(a?av.toLocaleString():'--')+'</span></div>'+
-    badge(r,a)+'</div></div></div>';
+function badge(r, a) {
+  if (!a || a <= 0) return '<span class="status-badge badge-closed">誘몄슫??/span>';
+  if (r >= 95) return '<span class="status-badge badge-full">留뚯감</span>';
+  if (r >= 80) return '<span class="status-badge badge-warn">?쇱옟</span>';
+  return '<span class="status-badge badge-ok">?ъ쑀</span>';
 }
-function sumItems(list){
-  var ta=0,tp=0;
-  list.forEach(function(i){
-    var fa=getFixedArea(i.floor||'');
-    var a=(fa!==null)?fa:(parseInt(i.parkingarea)||0);
-    var p=Math.abs(parseInt(i.parking)||0);
-    if(a>0){ta+=a;tp+=p;}
+
+// ?? 寃뚯씠吏 SVG ?????????????????????????????????????????????
+function gauge(r, c) {
+  var rad = 27, circ = 2 * Math.PI * rad;
+  var off = r !== null ? circ * (1 - r / 100) : circ;
+  return '<div class="gauge-circle"><svg width="64" height="64" viewBox="0 0 64 64">' +
+    '<circle class="gauge-bg" cx="32" cy="32" r="' + rad + '"/>' +
+    '<circle class="gauge-fill" cx="32" cy="32" r="' + rad + '" stroke="' + c +
+    '" stroke-dasharray="' + circ + '" stroke-dashoffset="' + off +
+    '" style="filter:drop-shadow(0 0 4px ' + c + '66)"/>' +
+    '</svg><div class="gauge-text">' +
+    '<span class="gauge-pct" style="color:' + c + '">' + (r !== null ? r : '--') + '</span>' +
+    '<span class="gauge-pct-unit">%</span></div></div>';
+}
+
+// ?? 移대뱶 ?앹꽦 ??????????????????????????????????????????????
+function buildCard(item) {
+  var floor = item.floor || '';
+  var p = parseInt(item.parking) || 0;
+  var a = parseInt(item.parkingarea) || 0;
+  var av = Math.max(0, a - p);
+  var r = getRate(p, a);
+  var c = getColor(r);
+  var term = getTerm(floor);
+  var tag = '<span class="terminal-tag ' + (term === 'T1' ? 't1-tag' : 't2-tag') + '">' + term + '</span>';
+  var name = floor.replace(/^T[12]\s*/i, '');
+  var cls = 'parking-card' + (!a ? ' closed' : r >= 95 ? ' full' : r >= 80 ? ' near-full' : '');
+
+  return '<div class="' + cls + '">' +
+    '<div class="card-floor">' + tag + name + '</div>' +
+    '<div class="card-gauge">' + gauge(r, c) +
+    '<div class="card-stats">' +
+    '<div class="stat-row"><span class="stat-label">二쇱감 ???/span><span class="stat-value sv-parked">' + p.toLocaleString() + '</span></div>' +
+    '<div class="stat-row"><span class="stat-label">?꾩껜 硫댁닔</span><span class="stat-value sv-total">' + a.toLocaleString() + '</span></div>' +
+    '<div class="stat-row"><span class="stat-label">?ъ쑀 硫댁닔</span><span class="stat-value sv-avail">' + (a ? av.toLocaleString() : '--') + '</span></div>' +
+    badge(r, a) + '</div></div></div>';
+}
+
+// ?? ?⑹궛 ???????????????????????????????????????????????????
+function sumItems(list) {
+  var ta = 0, tp = 0;
+  list.forEach(function(i) {
+    var a = parseInt(i.parkingarea) || 0;
+    var p = parseInt(i.parking) || 0;
+    if (a > 0) { ta += a; tp += Math.max(0, p); }
   });
-  return {rate:ta?Math.min(100,Math.round((tp/ta)*100)):0,area:ta,parked:tp};
+  var rate = ta ? Math.min(100, Math.round((tp / ta) * 100)) : 0;
+  return { rate: rate, area: ta, parked: tp };
 }
-function renderAll(items){
-  var t1=items.filter(function(i){return getTerm(i.floor)==='T1';});
-  var t2=items.filter(function(i){return getTerm(i.floor)==='T2';});
-  document.getElementById('t1Grid').innerHTML=t1.length?t1.map(buildCard).join(''):'<p style="color:var(--muted);padding:16px">데이터 없음</p>';
-  document.getElementById('t2Grid').innerHTML=t2.length?t2.map(buildCard).join(''):'<p style="color:var(--muted);padding:16px">데이터 없음</p>';
-  var s1=sumItems(t1),s2=sumItems(t2);
-  var stA=s1.area+s2.area,stP=s1.parked+s2.parked;
-  var stR=stA?Math.min(100,Math.round((stP/stA)*100)):0;
-  document.getElementById('t1Rate').textContent=s1.rate+'%';
-  document.getElementById('t1Sub').textContent=s1.parked.toLocaleString()+' / '+s1.area.toLocaleString()+' 면';
-  document.getElementById('t2Rate').textContent=s2.rate+'%';
-  document.getElementById('t2Sub').textContent=s2.parked.toLocaleString()+' / '+s2.area.toLocaleString()+' 면';
-  document.getElementById('totalRate').textContent=stR+'%';
-  document.getElementById('totalSub').textContent=stP.toLocaleString()+' / '+stA.toLocaleString()+' 면';
+
+// ?? ?꾩껜 ?뚮뜑留?????????????????????????????????????????????
+function renderAll(items) {
+  var t1 = items.filter(function(i) { return getTerm(i.floor) === 'T1'; });
+  var t2 = items.filter(function(i) { return getTerm(i.floor) === 'T2'; });
+
+  document.getElementById('t1Grid').innerHTML = t1.length
+    ? t1.map(buildCard).join('') : '<p style="color:var(--muted);padding:16px">?곗씠???놁쓬</p>';
+  document.getElementById('t2Grid').innerHTML = t2.length
+    ? t2.map(buildCard).join('') : '<p style="color:var(--muted);padding:16px">?곗씠???놁쓬</p>';
+
+  var s1 = sumItems(t1), s2 = sumItems(t2);
+  var stA = s1.area + s2.area, stP = s1.parked + s2.parked;
+  var stR = stA ? Math.min(100, Math.round((stP / stA) * 100)) : 0;
+
+  document.getElementById('t1Rate').textContent = s1.rate + '%';
+  document.getElementById('t1Sub').textContent = s1.parked.toLocaleString() + ' / ' + s1.area.toLocaleString() + ' 硫?;
+  document.getElementById('t2Rate').textContent = s2.rate + '%';
+  document.getElementById('t2Sub').textContent = s2.parked.toLocaleString() + ' / ' + s2.area.toLocaleString() + ' 硫?;
+  document.getElementById('totalRate').textContent = stR + '%';
+  document.getElementById('totalSub').textContent = stP.toLocaleString() + ' / ' + stA.toLocaleString() + ' 硫?;
 }
-function fmtDt(s){
-  s=String(s||'').replace(/\..+/,'');
-  return s.length>=14?s.slice(0,4)+'.'+s.slice(4,6)+'.'+s.slice(6,8)+' '+s.slice(8,10)+':'+s.slice(10,12)+':'+s.slice(12,14):'--:--:--';
+
+// ?? ?쒓컙 ?щ㎎ ?????????????????????????????????????????????
+function fmtDt(s) {
+  s = String(s || '').replace(/\..+/, '');
+  if (s.length >= 14)
+    return s.slice(0,4) + '.' + s.slice(4,6) + '.' + s.slice(6,8) + ' ' +
+           s.slice(8,10) + ':' + s.slice(10,12) + ':' + s.slice(12,14);
+  return '--:--:--';
 }
-function filterTab(t,btn){
-  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+
+// ?? ???꾪꽣 ????????????????????????????????????????????????
+function filterTab(t, btn) {
+  document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
-  document.getElementById('t1Section').style.display=(t==='all'||t==='T1')?'':'none';
-  document.getElementById('t2Section').style.display=(t==='all'||t==='T2')?'':'none';
+  document.getElementById('t1Section').style.display = (t === 'all' || t === 'T1') ? '' : 'none';
+  document.getElementById('t2Section').style.display = (t === 'all' || t === 'T2') ? '' : 'none';
 }
-async function loadData(){
-  var btn=document.getElementById('refreshBtn');
-  btn.disabled=true;btn.textContent='불러오는 중…';
+
+// ?? 硫붿씤 ??????????????????????????????????????????????????
+async function loadData() {
+  var btn = document.getElementById('refreshBtn');
+  btn.disabled = true; btn.textContent = '遺덈윭?ㅻ뒗 以묅?;
   document.getElementById('loadingState').classList.remove('hidden');
   document.getElementById('errorState').classList.add('hidden');
   document.getElementById('mainContent').classList.add('hidden');
-  try{
-    var items=await fetchData();
-    document.getElementById('updateTime').textContent=fmtDt(items[0]&&items[0].datetm);
-    document.getElementById('cacheNotice').style.display='block';
-    document.getElementById('cacheAge').textContent=fmtDt(items[0]&&items[0].datetm);
+
+  try {
+    var items = await fetchData();
+    var dt = fmtDt(items[0] && items[0].datetm);
+    document.getElementById('updateTime').textContent = dt;
+    document.getElementById('updateTime2').textContent = dt;
     renderAll(items);
     document.getElementById('loadingState').classList.add('hidden');
     document.getElementById('mainContent').classList.remove('hidden');
-  }catch(err){
+  } catch(err) {
     console.error(err);
     document.getElementById('loadingState').classList.add('hidden');
-    document.getElementById('errorMsg').textContent='오류: '+err.message;
+    document.getElementById('errorMsg').textContent = '?ㅻ쪟: ' + err.message;
     document.getElementById('errorState').classList.remove('hidden');
-  }finally{
-    btn.disabled=false;btn.textContent='↻ 새로고침';
+  } finally {
+    btn.disabled = false; btn.textContent = '???덈줈怨좎묠';
   }
 }
+
 loadData();
-setInterval(loadData,300000); // 5분마다 새로고침
+setInterval(loadData, 60000); // 1遺꾨쭏???덈줈怨좎묠 (?곗씠?곕뒗 5遺?媛깆떊)
 </script>
 </body>
 </html>
