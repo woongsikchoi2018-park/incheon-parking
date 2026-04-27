@@ -164,7 +164,7 @@ function getFixedArea(floor) {
 // ── 데이터 fetch — 같은 도메인 JSON (CORS 없음) ───────────
 async function fetchData() {
   // parking.json 은 GitHub Actions가 5분마다 갱신
-  var res = await fetch('/incheon-parking/parking.json?_=' + Date.now());
+  var res = await fetch('/incheon-parking/parking.json?t=' + Date.now());
   if (!res.ok) throw new Error('parking.json 로드 실패: ' + res.status);
   var data = await res.json();
 
