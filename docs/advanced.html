@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -145,7 +144,7 @@
   <div class="header-right">
     <div class="live-badge"><div class="live-dot"></div>LIVE</div>
     <div class="update-time"><span id="updateTime">--:--:--</span>데이터 기준</div>
-    <a href="./index.html" class="btn">← 기본 현황</a>
+    <a href="./index1.html" class="btn">🅿 기본 현황</a>
     <button class="btn" id="refreshBtn" onclick="loadData()">↻ 새로고침</button>
   </div>
 </header>
@@ -221,8 +220,25 @@ async function loadPrevFromCache(){
     var data = await res.json();
     var items = data.response && data.response.body && data.response.body.items;
     if(items && items.length){
+      // parking.json 시각 확인 — 너무 오래된 데이터면 무효화
+      var dtStr = String(items[0].datetm || '').replace(/\..+/, '');
+      if(dtStr.length >= 14){
+        var pd = new Date(
+          dtStr.slice(0,4)+'-'+dtStr.slice(4,6)+'-'+dtStr.slice(6,8)+'T'+
+          dtStr.slice(8,10)+':'+dtStr.slice(10,12)+':'+dtStr.slice(12,14)
+        );
+        var now = new Date();
+        var diffMin = (now - pd) / 60000;
+        if(diffMin > 30){
+          console.log('parking.json 이 너무 오래됨 (' + Math.round(diffMin) + '분), 무시');
+          return; // prevItems 설정 안 함 → 첫 로드에서 수집중 표시
+        }
+      }
       prevItems = items;
-      console.log('이전 데이터 로드 완료 (parking.json):', items.length + '개');
+      console.log('이전 데이터 로드 완료:', items.length + '개, 경과:' + Math.round((new Date()-new Date(
+        dtStr.slice(0,4)+'-'+dtStr.slice(4,6)+'-'+dtStr.slice(6,8)+'T'+
+        dtStr.slice(8,10)+':'+dtStr.slice(10,12)+':'+dtStr.slice(12,14)
+      ))/60000) + '분');
     }
   } catch(e){
     console.log('parking.json 로드 실패 (무시):', e.message);
@@ -266,8 +282,6 @@ function getCardClass(r){
   return 'parking-card';
 }
 
-}
-
 // ── 게이지 SVG ────────────────────────────────────────────
 function gauge(r,c){
   var rad=25,circ=2*Math.PI*rad;
@@ -298,7 +312,7 @@ function calcMetrics(floor, currP, currA){
       var pd=new Date(ps.slice(0,4)+'-'+ps.slice(4,6)+'-'+ps.slice(6,8)+'T'+ps.slice(8,10)+':'+ps.slice(10,12)+':'+ps.slice(12,14));
       var cd=new Date(cs.slice(0,4)+'-'+cs.slice(4,6)+'-'+cs.slice(6,8)+'T'+cs.slice(8,10)+':'+cs.slice(10,12)+':'+cs.slice(12,14));
       var diffMin=Math.round((cd-pd)/60000);
-      if(diffMin>0 && diffMin<=30) intervalMin=diffMin; // 30분 이상이면 무시
+      if(diffMin>0 && diffMin<=30){ intervalMin=diffMin; } else if(diffMin>30){ return{delta:null,eta:null}; } // 30분 초과시 무효
     }
   }
 
@@ -425,7 +439,7 @@ function calcTermMetrics(termItems){
       var pd=new Date(ps.slice(0,4)+'-'+ps.slice(4,6)+'-'+ps.slice(6,8)+'T'+ps.slice(8,10)+':'+ps.slice(10,12)+':'+ps.slice(12,14));
       var cd=new Date(cs.slice(0,4)+'-'+cs.slice(4,6)+'-'+cs.slice(6,8)+'T'+cs.slice(8,10)+':'+cs.slice(10,12)+':'+cs.slice(12,14));
       var diffMin=Math.round((cd-pd)/60000);
-      if(diffMin>0 && diffMin<=30) intervalMin=diffMin;
+      if(diffMin>0 && diffMin<=30){ intervalMin=diffMin; } else if(diffMin>30){ return{delta:null,eta:null,avail:avail}; }
     }
   }
 
