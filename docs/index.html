@@ -307,6 +307,8 @@ function renderMetrics(delta,eta,rate,avail){
       if(eta<=10){eClass='mur';eText='약 '+eta+'분 후 만차';}
       else if(eta<=30){eClass='mw';eText='약 '+eta+'분 후 만차';}
       else{eClass='ms';eText='약 '+eta+'분 소요';}
+    } else if(delta===0){
+      eClass='ms';eText='현 수준 유지';
     } else {
       eClass='ms';eText='감소 중';
     }
@@ -371,13 +373,15 @@ function updateSmBadge(idDelta,idEta,m,rate){
     if(m.eta<=10){eEl.textContent='⏱ 약 '+m.eta+'분 후 만차';eEl.className='smbadge sm-urgent';}
     else if(m.eta<=30){eEl.textContent='⏱ 약 '+m.eta+'분 후 만차';eEl.className='smbadge sm-warn';}
     else{eEl.textContent='⏱ 약 '+m.eta+'분 소요';eEl.className='smbadge sm-safe';}
+  } else if(m.delta===0){
+    eEl.textContent='⏱ 현 수준 유지';eEl.className='smbadge sm-safe';
   } else {
     eEl.textContent='⏱ 감소 중';eEl.className='smbadge sm-safe';
   }
 }
 
 // ── 전체 렌더링 ───────────────────────────────────────────
-function renderAll(items,currDatetm){
+function renderAll(items,currDatetm,isManual){
   var t1=items.filter(function(i){return getTerm(i.floor)==='T1';});
   var t2=items.filter(function(i){return getTerm(i.floor)==='T2';});
   document.getElementById('t1Grid').innerHTML=t1.length?t1.map(function(i){return buildCard(i,currDatetm);}).join(''):'<p style="color:var(--muted);padding:12px">데이터 없음</p>';
@@ -405,8 +409,8 @@ function renderAll(items,currDatetm){
   document.querySelector('.sc-t2').style.opacity=(currFilter==='T1')?'0.3':'1';
   document.querySelector('.sc-total').style.opacity=(currFilter!=='all')?'0.3':'1';
 
-  // 로그 저장
-  if(prevItems&&prevDatetm)saveLog(items,currDatetm);
+  // 로그 저장 (자동 갱신 시만, 수동 새로고침 제외)
+  if(prevItems&&prevDatetm&&!isManual)saveLog(items,currDatetm);
   var lc=document.getElementById('logCount');
   if(lc)lc.textContent=getLogCount()+'건';
 }
@@ -504,7 +508,7 @@ async function loadData(isManual){
 
     var currDatetm=items[0]?String(items[0].datetm):null;
     document.getElementById('updateTime').textContent=fmtDt(currDatetm);
-    renderAll(items,currDatetm);
+    renderAll(items,currDatetm,isManual);
 
     callCount++;
     if(callCount>=2){var fn=document.getElementById('firstNotice');if(fn)fn.style.display='none';}
