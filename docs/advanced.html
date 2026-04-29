@@ -164,7 +164,7 @@
       <div class="summary-card t2"><div class="summary-icon">🅿</div><div class="summary-label">제2여객터미널 · T2</div><div class="summary-value" id="t2Rate">--%</div><div class="summary-sub" id="t2Sub">-- / -- 면</div></div>
       <div class="summary-card total"><div class="summary-icon">📊</div><div class="summary-label">전체 주차장</div><div class="summary-value" id="totalRate">--%</div><div class="summary-sub" id="totalSub">-- / -- 면</div></div>
     </div>
-    <div id="firstNotice" class="first-load-notice">⏱ 순증가 속도와 만차 예상 시간은 2회차 데이터 수신(약 1분) 후부터 표시됩니다.</div>
+    <div id="firstNotice" class="first-load-notice">⏱ 첫 접속 시 GitHub 캐시 데이터로 즉시 표시됩니다. 캐시가 없을 경우 잠시 후 자동 업데이트됩니다.</div>
     <div class="zone-tab-row">
       <button class="zone-tab-btn active" onclick="filterZone('all',this)">전체</button>
       <button class="zone-tab-btn" onclick="filterZone('T1',this)">T1 제1터미널</button>
@@ -174,13 +174,30 @@
     <div id="t2Section"><div class="section-title">T2 제2여객터미널</div><div class="parking-grid" id="t2Grid"></div></div>
   </div>
 </main>
-<footer>데이터 출처: 공공데이터포털 · 인천국제공항공사 주차 현황 조회 서비스 &nbsp;|&nbsp; 1분 갱신 · 테스트 버전</footer>
+<footer>데이터 출처: 공공데이터포털 · 교통서비스처 교통시설팀 &nbsp;|&nbsp; 1분 갱신 · 테스트 버전</footer>
 
 <script>
 var API_KEY = '0a14146eb3792c2431da885ae66255e06cb942e10e85ddd953de019de7af777d';
 var API_URL = 'https://apis.data.go.kr/B551177/StatusOfParking/getTrackingParking?serviceKey='+API_KEY+'&numOfRows=100&pageNo=1&type=json';
 var prevItems = null;
 var callCount = 0;
+var GH_JSON = 'https://woongsikchoi2018-park.github.io/incheon-parking/parking.json';
+
+// 페이지 로드시 parking.json (5분 전 데이터)을 prevItems로 미리 로드
+async function loadPrevFromCache(){
+  try{
+    var res = await fetch(GH_JSON + '?t=' + new Date().getTime());
+    if(!res.ok) return;
+    var data = await res.json();
+    var items = data.response && data.response.body && data.response.body.items;
+    if(items && items.length){
+      prevItems = items;
+      console.log('이전 데이터 로드 완료 (parking.json):', items.length + '개');
+    }
+  } catch(e){
+    console.log('parking.json 로드 실패 (무시):', e.message);
+  }
+}
 
 // ── 헬퍼 ─────────────────────────────────────────────────
 function getTerm(f){return /^T1/i.test(f)?'T1':/^T2/i.test(f)?'T2':'OTHER';}
@@ -257,29 +274,35 @@ function calcMetrics(floor, currP, currA){
   for(var i=0;i<prevItems.length;i++){if(prevItems[i].floor===floor){prev=prevItems[i];break;}}
   if(!prev)return{delta:null,eta:null};
   var prevP=Math.max(0,parseInt(prev.parking)||0);
-  var delta=currP-prevP; // 1분간 변화량
+  var delta=currP-prevP;        // 5분간 변화량
   var avail=Math.max(0,currA-currP);
   var eta=null;
-  if(delta>0&&avail>0)eta=Math.round(avail/delta);
+  // 5분당 delta대 증가 → 분당 delta/5대 → 만차까지 avail/(delta/5)분
+  if(delta>0&&avail>0) eta=Math.round(avail/(delta/5));
   return{delta:delta,eta:eta};
 }
 
 function renderMetrics(delta, eta, rate){
-  // 순증가속도
-  var dClass='mv-flat',dText='-- 대/분',dArrow='→';
+  // 순증가속도 (5분 단위)
+  var dClass='mv-flat', dText='-- 대/5분', dArrow='→', dLabel='증감 (5분)';
   if(delta!==null){
-    if(delta>5){dClass='mv-up';dArrow='↑↑';}
-    else if(delta>0){dClass='mv-up';dArrow='↑';}
-    else if(delta<-5){dClass='mv-down';dArrow='↓↓';}
-    else if(delta<0){dClass='mv-down';dArrow='↓';}
-    else{dClass='mv-flat';dArrow='→';}
-    dText=(delta>0?'+':'')+delta+'대/분';
+    if(delta>0){
+      dClass='mv-up'; dArrow='↑';
+      dText='증가 +'+delta+'대/5분';
+    } else if(delta<0){
+      dClass='mv-down'; dArrow='↓';
+      dText='감소 '+delta+'대/5분';
+    } else {
+      dClass='mv-flat'; dArrow='→';
+      dText='그대로';
+    }
   }
-  // 만차예상
-  var eClass='mv-safe',eText='여유';
+  // 만차예상 (5분 단위 기준 → 분 환산)
+  var eClass='mv-safe', eText='여유';
   if(rate!==null&&rate>=110){eClass='mv-urgent';eText='주차 초과중';}
   else if(rate!==null&&rate>=95){eClass='mv-urgent';eText='만차';}
   else if(eta!==null){
+    // eta는 이미 분 단위로 계산됨
     if(eta<=10){eClass='mv-urgent';eText='약 '+eta+'분 후 만차';}
     else if(eta<=30){eClass='mv-warn';eText='약 '+eta+'분 후 만차';}
     else{eClass='mv-safe';eText='약 '+eta+'분 여유';}
@@ -291,7 +314,7 @@ function renderMetrics(delta, eta, rate){
 
   return '<div class="card-footer">'+
     '<div class="metric-box">'+
-      '<div class="metric-label">순증가 속도</div>'+
+      '<div class="metric-label">순증감 (5분)</div>'+
       '<div class="metric-value '+dClass+'">'+dArrow+' '+dText+'</div>'+
     '</div>'+
     '<div class="metric-box">'+
@@ -340,23 +363,49 @@ function renderAll(items){
   var t2=items.filter(function(i){return getTerm(i.floor)==='T2';});
   document.getElementById('t1Grid').innerHTML=t1.length?t1.map(buildCard).join(''):'<p style="color:var(--muted);padding:12px">데이터 없음</p>';
   document.getElementById('t2Grid').innerHTML=t2.length?t2.map(buildCard).join(''):'<p style="color:var(--muted);padding:12px">데이터 없음</p>';
-  var s1=sumItems(t1),s2=sumItems(t2);
-  var stA=s1.area+s2.area,stP=s1.parked+s2.parked;
-  var stR=stA?Math.round((stP/stA)*100):0;
-  document.getElementById('t1Rate').textContent=s1.rate+'%';
-  document.getElementById('t1Sub').textContent=s1.parked.toLocaleString()+' / '+s1.area.toLocaleString()+' 면';
-  document.getElementById('t2Rate').textContent=s2.rate+'%';
-  document.getElementById('t2Sub').textContent=s2.parked.toLocaleString()+' / '+s2.area.toLocaleString()+' 면';
-  document.getElementById('totalRate').textContent=stR+'%';
-  document.getElementById('totalSub').textContent=stP.toLocaleString()+' / '+stA.toLocaleString()+' 면';
-  updateBanner(items);
+  lastItems = items;
+  updateSummary(items, currentFilter);
 }
+
+var currentFilter = 'all';
+var lastItems = null;
 
 function filterZone(t,btn){
   document.querySelectorAll('.zone-tab-btn').forEach(function(b){b.classList.remove('active');});
   btn.classList.add('active');
+  currentFilter = t;
   document.getElementById('t1Section').style.display=(t==='all'||t==='T1')?'':'none';
   document.getElementById('t2Section').style.display=(t==='all'||t==='T2')?'':'none';
+  // 요약 카드도 필터에 맞게 갱신
+  if(lastItems) updateSummary(lastItems, t);
+}
+
+function updateSummary(items, filter){
+  var t1=items.filter(function(i){return getTerm(i.floor)==='T1';});
+  var t2=items.filter(function(i){return getTerm(i.floor)==='T2';});
+
+  var list = filter==='T1' ? t1 : filter==='T2' ? t2 : items;
+  var s = sumItems(list);
+
+  // 라벨도 필터에 맞게
+  var label = filter==='T1' ? '제1여객터미널 · T1' : filter==='T2' ? '제2여객터미널 · T2' : '전체 주차장';
+  document.querySelector('.summary-card.total .summary-label').textContent = label;
+  document.getElementById('totalRate').textContent = s.rate+'%';
+  document.getElementById('totalSub').textContent = s.parked.toLocaleString()+' / '+s.area.toLocaleString()+' 면';
+
+  // T1/T2 요약은 전체일 때만 개별 표시, 필터 시 해당 터미널만 강조
+  var s1=sumItems(t1), s2=sumItems(t2);
+  document.getElementById('t1Rate').textContent = s1.rate+'%';
+  document.getElementById('t1Sub').textContent = s1.parked.toLocaleString()+' / '+s1.area.toLocaleString()+' 면';
+  document.getElementById('t2Rate').textContent = s2.rate+'%';
+  document.getElementById('t2Sub').textContent = s2.parked.toLocaleString()+' / '+s2.area.toLocaleString()+' 면';
+
+  // 선택된 터미널 카드 강조
+  document.querySelector('.summary-card.t1').style.opacity = (filter==='T2') ? '0.35' : '1';
+  document.querySelector('.summary-card.t2').style.opacity = (filter==='T1') ? '0.35' : '1';
+  document.querySelector('.summary-card.total').style.opacity = '1';
+
+  updateBanner(list);
 }
 
 // ── 메인 로드 ─────────────────────────────────────────────
@@ -398,7 +447,8 @@ async function loadData(){
   }
 }
 
-loadData();
+// 페이지 로드 시 parking.json 먼저 읽고 → API 호출
+loadPrevFromCache().then(function(){ loadData(); });
 setInterval(loadData,60000);
 </script>
 </body>
