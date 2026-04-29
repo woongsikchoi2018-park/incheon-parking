@@ -293,6 +293,91 @@ function logTimeInfo(currDatetm){
   else console.log('시간 파싱 실패 pd:'+pd+' cd:'+cd);
 }
 
+// ── localStorage 로그 시스템 ──────────────────────────────
+var LOG_KEY = 'parking_delta_log';
+var LOG_MAX = 500; // 최대 500건 보관
+
+function saveLog(items, currDatetm){
+  try{
+    var existing = JSON.parse(localStorage.getItem(LOG_KEY) || '[]');
+    var pd=parseDt(prevDatetm), cd=parseDt(currDatetm);
+    var diffMin = (pd&&cd) ? Math.round((cd-pd)/60000) : null;
+
+    var entry = {
+      ts: currDatetm,                          // 현재 시각
+      prevTs: prevDatetm,                      // 이전 시각
+      diffMin: diffMin,                        // 시간차(분)
+      zones: []
+    };
+
+    items.forEach(function(i){
+      var prev = prevItems ? prevItems.find(function(x){return x.floor===i.floor;}) : null;
+      var a = parseInt(i.parkingarea)||0;
+      var p = Math.max(0, parseInt(i.parking)||0);
+      var pp = prev ? Math.max(0, parseInt(prev.parking)||0) : null;
+      var delta = (pp!==null) ? p-pp : null;
+      var delta5 = (delta!==null && diffMin && diffMin>0) ? Math.round(delta*(5/diffMin)) : null;
+      if(a>0){
+        entry.zones.push({
+          floor: i.floor,
+          prev: pp,
+          curr: p,
+          area: a,
+          delta: delta,
+          delta5: delta5,
+          rate: Math.round((p/a)*100)
+        });
+      }
+    });
+
+    existing.push(entry);
+    if(existing.length > LOG_MAX) existing = existing.slice(-LOG_MAX);
+    localStorage.setItem(LOG_KEY, JSON.stringify(existing));
+  }catch(e){ console.warn('로그 저장 실패:', e.message); }
+}
+
+function exportLog(){
+  try{
+    var logs = JSON.parse(localStorage.getItem(LOG_KEY) || '[]');
+    if(!logs.length){ alert('저장된 로그가 없습니다.'); return; }
+
+    // CSV 생성
+    var rows = ['시각,이전시각,시간차(분),구역,이전대수,현재대수,총면수,주차율(%),증감(5분기준)'];
+    logs.forEach(function(e){
+      e.zones.forEach(function(z){
+        rows.push([
+          e.ts, e.prevTs||'', e.diffMin||'',
+          z.floor, z.prev||'', z.curr, z.area, z.rate,
+          z.delta5!==null?z.delta5:''
+        ].join(','));
+      });
+    });
+    var csv = '﻿' + rows.join('
+'); // BOM for Excel
+    var blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'parking_log_' + new Date().toISOString().slice(0,16).replace(/[T:]/g,'-') + '.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    console.log('로그 내보내기 완료: ' + logs.length + '건');
+  }catch(e){ alert('내보내기 실패: '+e.message); }
+}
+
+function clearLog(){
+  if(confirm('로그를 모두 삭제하시겠습니까?')){
+    localStorage.removeItem(LOG_KEY);
+    alert('삭제 완료');
+  }
+}
+
+function getLogCount(){
+  try{
+    return JSON.parse(localStorage.getItem(LOG_KEY)||'[]').length;
+  }catch(e){return 0;}
+}
+
 function calcMetrics(floor, currP, currA, currDatetm){
   if(!prevItems || !prevDatetm) return{delta:null,eta:null};
   var prev=null;
@@ -528,7 +613,8 @@ function updateSummary(items, filter){
 async function loadData(isManual){
   var btn=document.getElementById('refreshBtn');
   btn.disabled=true;
-  if(callCount===0){
+  // 첫 로드시만 로딩화면 표시, 수동 새로고침은 현재 화면 유지
+  if(callCount===0 && !isManual){
     document.getElementById('loadingState').classList.remove('hidden');
     document.getElementById('errorState').classList.add('hidden');
     document.getElementById('mainContent').classList.add('hidden');
@@ -551,12 +637,9 @@ async function loadData(isManual){
     document.getElementById('loadingState').classList.add('hidden');
     document.getElementById('mainContent').classList.remove('hidden');
 
-    // 수동 새로고침이면 prevItems 유지 (직전 데이터와 비교 유지)
-    // 자동 1분 갱신이면 현재값을 다음 비교용으로 저장
-    if(!isManual){
-      prevItems = items;
-      prevDatetm = currDatetm;
-    }
+    // 항상 prevItems/prevDatetm 업데이트 (다음 호출 비교용)
+    prevItems = items;
+    prevDatetm = currDatetm;
   }catch(err){
     if(callCount===0){
       document.getElementById('loadingState').classList.add('hidden');
