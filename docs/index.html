@@ -62,7 +62,7 @@ main{position:relative;z-index:1;padding:20px 32px;max-width:1400px;margin:0 aut
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;margin-bottom:24px;}
 .pc{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:14px 16px;backdrop-filter:blur(10px);transition:all 0.25s;}
 .pc:hover{border-color:rgba(51,153,255,0.4);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.3);}
-.pc.nf{border-color:rgba(255,102,51,0.35);}
+.pc.nf{border-color:rgba(255,102,51,0.4);background:rgba(30,15,5,0.85);}
 .pc.cau{border-color:rgba(255,255,255,0.25);}
 .pc.full{border-color:rgba(255,34,68,0.45);background:rgba(40,8,15,0.9);}
 .pc.ov{border-color:rgba(255,34,68,0.8);background:rgba(60,0,10,0.95);animation:glow 1s infinite;}
@@ -206,33 +206,26 @@ function parseDt(s){
 // ── 색상/등급 ─────────────────────────────────────────────
 function getGaugeColor(r){
   if(r===null)return '#4a5568';
-  if(r>=110)return '#ff2244';
-  if(r>=95)return '#ff6633';
-  if(r>=85)return '#e0e8ff';
-  if(r>=60)return '#f0b400';
-  return '#00cc77';
+  if(r>=111)return '#ff2244';  // 빨간색
+  if(r>=90)return '#ff6633';   // 주황색
+  return '#00cc77';             // 초록색 (89% 이하)
 }
 function getSigClass(r){
-  if(r===null||r<85)return 'sg';
-  if(r<95)return 'sw';
-  if(r<110)return 'so';
-  return 'sr';
+  if(r===null||r<=89)return 'sg';  // 파란색(녹색 유지)
+  if(r<=110)return 'so';           // 주황색
+  return 'sr';                      // 빨간색
 }
 function getBadge(r,a){
   if(!a||a<=0)return '<span class="sbadge b-cl">미운영</span>';
-  if(r>=110)return '<span class="sbadge b-ov">⚠️초과</span>';
-  if(r>=95)return '<span class="sbadge b-full">만차</span>';
-  if(r>=85)return '<span class="sbadge b-cau">주의</span>';
-  if(r>=60)return '<span class="sbadge b-warn">혼잡</span>';
-  return '<span class="sbadge b-ok">여유</span>';
+  if(r>=111)return '<span class="sbadge b-ov">초과</span>';    // 빨간색
+  if(r>=90)return '<span class="sbadge b-warn">혼잡</span>';   // 주황색
+  return '<span class="sbadge b-ok">여유</span>';               // 파란색
 }
 function getCardClass(r){
   if(r===null)return 'pc cl';
-  if(r>=110)return 'pc ov';
-  if(r>=95)return 'pc full';
-  if(r>=85)return 'pc cau';
-  if(r>=80)return 'pc nf';
-  return 'pc';
+  if(r>=111)return 'pc ov';   // 빨간색
+  if(r>=90)return 'pc nf';    // 주황색
+  return 'pc';                  // 파란색
 }
 
 // ── 게이지 ────────────────────────────────────────────────
@@ -367,8 +360,8 @@ function updateSmBadge(idDelta,idEta,m,rate){
   else if(m.delta<0){dEl.textContent='↓ '+m.delta+'대/5분';dEl.className='smbadge sm-down';}
   else{dEl.textContent='→ 0대/5분';dEl.className='smbadge sm-flat';}
   // eta
-  if(rate>=110){eEl.textContent='⚠️ 초과중';eEl.className='smbadge sm-urgent';}
-  else if(rate>=95){eEl.textContent='⏱ 만차';eEl.className='smbadge sm-urgent';}
+  if(rate>=111){eEl.textContent='⚠️ 초과중';eEl.className='smbadge sm-urgent';}
+  else if(rate>=90){eEl.textContent='⏱ 혼잡';eEl.className='smbadge sm-warn';}
   else if(m.eta!==null){
     if(m.eta<=10){eEl.textContent='⏱ 약 '+m.eta+'분 후 만차';eEl.className='smbadge sm-urgent';}
     else if(m.eta<=30){eEl.textContent='⏱ 약 '+m.eta+'분 후 만차';eEl.className='smbadge sm-warn';}
@@ -482,9 +475,14 @@ async function loadPrevFromCache(){
     var data=await res.json();
     var items=data.response&&data.response.body&&data.response.body.items;
     if(items&&items.length){
-      prevItems=items;
-      prevDatetm=items[0]?String(items[0].datetm):null;
-      console.log('parking.json 로드 완료:',items.length+'개, 시각='+prevDatetm);
+      // 최초 1회만 설정 — 이미 prevItems가 있으면 덮어쓰지 않음
+      if(!prevItems){
+        prevItems=items;
+        prevDatetm=items[0]?String(items[0].datetm):null;
+        console.log('parking.json 로드 완료:',items.length+'개, 시각='+prevDatetm);
+      } else {
+        console.log('parking.json 무시 — prevItems 이미 있음');
+      }
     }
   }catch(e){console.log('parking.json 로드 실패(무시):',e.message);}
 }
@@ -532,8 +530,23 @@ async function loadData(isManual){
 }
 
 // ── 초기 실행 ─────────────────────────────────────────────
+// 최초 로드
 loadPrevFromCache().then(function(){loadData();});
-setInterval(loadData,60000);
+
+// 1분 자동 갱신 — Page Visibility API로 백그라운드 복귀 감지
+var autoTimer = setInterval(loadData, 60000);
+
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState === 'visible'){
+    // 화면 복귀 시: parking.json 재로드 없이 바로 API 호출
+    // prevItems/prevDatetm은 유지 (마지막 정상 수집값 기준)
+    clearInterval(autoTimer);
+    loadData();
+    autoTimer = setInterval(loadData, 60000);
+    console.log('화면 복귀 — 데이터 갱신');
+  }
+});
+
 setTimeout(function(){var lc=document.getElementById('logCount');if(lc)lc.textContent=getLogCount()+'건';},500);
 </script>
 </body>
