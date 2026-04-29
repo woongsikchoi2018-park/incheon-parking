@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>인천공항 주차 현황 (변화 모니터링)</title>
+<title>인천공항 주차 현황 (고급)</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Oswald:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
   :root{--navy:#0a1628;--blue:#1e5fbd;--sky:#3399ff;--sky-light:#66bbff;--gold:#f0b400;--green:#00cc77;--orange:#ff6633;--red:#ff2244;--white:#f0f6ff;--muted:#7a9cc0;--card-bg:rgba(15,32,68,0.85);--border:rgba(51,153,255,0.2);}
@@ -207,8 +207,9 @@
 <script>
 var API_KEY = '0a14146eb3792c2431da885ae66255e06cb942e10e85ddd953de019de7af777d';
 var API_URL = 'https://apis.data.go.kr/B551177/StatusOfParking/getTrackingParking?serviceKey='+API_KEY+'&numOfRows=100&pageNo=1&type=json';
-var prevItems = null;
-var currItems = null; // 현재 데이터 (시간차 계산용)
+var prevItems = null;    // 이전 데이터 (parking.json 또는 직전 API 호출값)
+var _currDatetm = null;  // renderAll에서 buildCard로 전달하는 현재 시각
+var prevDatetm = null;   // 이전 데이터의 시각 문자열
 var callCount = 0;
 var GH_JSON = 'https://woongsikchoi2018-park.github.io/incheon-parking/parking.json';
 
@@ -220,8 +221,9 @@ async function loadPrevFromCache(){
     var data = await res.json();
     var items = data.response && data.response.body && data.response.body.items;
     if(items && items.length){
-      prevItems = items; // 시간차는 calcMetrics에서 정규화하므로 무조건 설정
-      console.log('이전 데이터(parking.json) 로드 완료: ' + items.length + '개');
+      prevItems = items;
+      prevDatetm = items[0] ? String(items[0].datetm) : null;
+      console.log('parking.json 로드: ' + items.length + '개, 시각=' + prevDatetm);
     }
   } catch(e){
     console.log('parking.json 로드 실패 (무시):', e.message);
@@ -277,32 +279,44 @@ function gauge(r,c){
 }
 
 // ── 순증가속도 & 만차예상 계산 ───────────────────────────
-function calcMetrics(floor, currP, currA){
-  if(!prevItems)return{delta:null,eta:null};
+function parseDt(s){
+  s=String(s||'').replace(/\..*/,'');
+  if(s.length<14) return null;
+  return new Date(s.slice(0,4)+'-'+s.slice(4,6)+'-'+s.slice(6,8)+'T'+s.slice(8,10)+':'+s.slice(10,12)+':'+s.slice(12,14));
+}
+function logTimeInfo(currDatetm){
+  console.log('=== 시간 정보 ===');
+  console.log('prevDatetm:', prevDatetm);
+  console.log('currDatetm:', currDatetm);
+  var pd=parseDt(prevDatetm), cd=parseDt(currDatetm);
+  if(pd&&cd) console.log('시간차:', Math.round((cd-pd)/60000)+'분');
+  else console.log('시간 파싱 실패 pd:'+pd+' cd:'+cd);
+}
+
+function calcMetrics(floor, currP, currA, currDatetm){
+  if(!prevItems || !prevDatetm) return{delta:null,eta:null};
   var prev=null;
   for(var i=0;i<prevItems.length;i++){if(prevItems[i].floor===floor){prev=prevItems[i];break;}}
-  if(!prev)return{delta:null,eta:null};
+  if(!prev) return{delta:null,eta:null};
+
   var prevP=Math.max(0,parseInt(prev.parking)||0);
   var delta=currP-prevP;
   var avail=Math.max(0,currA-currP);
 
-  // 시간 차이 계산 (분) — prevItems의 datetm과 현재 datetm 비교
-  var intervalMin=5; // 기본 5분
-  if(prev.datetm && currItems && currItems[0] && currItems[0].datetm){
-    var ps=String(prev.datetm).replace(/\..+/,'');
-    var cs=String(currItems[0].datetm).replace(/\..+/,'');
-    if(ps.length>=14 && cs.length>=14){
-      var pd=new Date(ps.slice(0,4)+'-'+ps.slice(4,6)+'-'+ps.slice(6,8)+'T'+ps.slice(8,10)+':'+ps.slice(10,12)+':'+ps.slice(12,14));
-      var cd=new Date(cs.slice(0,4)+'-'+cs.slice(4,6)+'-'+cs.slice(6,8)+'T'+cs.slice(8,10)+':'+cs.slice(10,12)+':'+cs.slice(12,14));
-      var diffMin=Math.round((cd-pd)/60000);
-      if(diffMin>0){ intervalMin=diffMin; } // 시간차 항상 정규화
-    }
+  var intervalMin=5;
+  var pd=parseDt(prevDatetm);
+  var cd=parseDt(currDatetm);
+  if(pd && cd){
+    var diffMin=Math.round((cd-pd)/60000);
+    if(diffMin<=0) return{delta:null,eta:null};
+    if(diffMin>60) return{delta:null,eta:null};
+    intervalMin=diffMin;
   }
 
-  // 5분 기준으로 정규화
   var delta5=Math.round(delta*(5/intervalMin));
   var eta=null;
   if(delta5>0&&avail>0) eta=Math.round(avail/(delta5/5));
+  console.log('['+floor+'] prev:'+prevP+' curr:'+currP+' delta:'+delta+' interval:'+intervalMin+'분 → delta5:'+delta5+' eta:'+eta);
   return{delta:delta5, eta:eta};
 }
 
@@ -357,7 +371,7 @@ function buildCard(item){
   var r=getRate(p,a),c=getGaugeColor(r),term=getTerm(floor);
   var name=floor.replace(/^T[12]\s*/i,'');
   var tag='<span class="terminal-tag '+(term==='T1'?'t1-tag':'t2-tag')+'">'+term+'</span>';
-  var m=calcMetrics(floor,p,a);
+  var m=calcMetrics(floor,p,a,_currDatetm);
   return '<div class="'+getCardClass(r)+'">'+
     '<div class="card-header">'+
       '<div class="card-floor">'+tag+name+'</div>'+
@@ -383,22 +397,24 @@ function sumItems(list){
 }
 
 // ── 렌더링 ────────────────────────────────────────────────
-function renderAll(items){
+function renderAll(items, currDatetm){
+  _currDatetm = currDatetm;
+  logTimeInfo(currDatetm);
   var t1=items.filter(function(i){return getTerm(i.floor)==='T1';});
   var t2=items.filter(function(i){return getTerm(i.floor)==='T2';});
   document.getElementById('t1Grid').innerHTML=t1.length?t1.map(buildCard).join(''):'<p style="color:var(--muted);padding:12px">데이터 없음</p>';
   document.getElementById('t2Grid').innerHTML=t2.length?t2.map(buildCard).join(''):'<p style="color:var(--muted);padding:12px">데이터 없음</p>';
   lastItems = items;
   updateSummary(items, currentFilter);
-  updateSummaryMetrics(items);
+  updateSummaryMetrics(items, currDatetm);
 }
 
 var currentFilter = 'all';
 var lastItems = null;
 
 // ── 터미널별 순증감/만차예상 계산 ────────────────────────
-function calcTermMetrics(termItems){
-  if(!prevItems) return null;
+function calcTermMetrics(termItems, currDatetm){
+  if(!prevItems || !prevDatetm) return null;
 
   var currP=0, currA=0, prevP=0;
   termItems.forEach(function(i){
@@ -413,27 +429,24 @@ function calcTermMetrics(termItems){
   var delta=currP-prevP;
   var avail=Math.max(0,currA-currP);
 
-  // 시간 차이 계산 (분)
   var intervalMin=5;
-  if(prevItems[0] && prevItems[0].datetm && currItems && currItems[0] && currItems[0].datetm){
-    var ps=String(prevItems[0].datetm).replace(/\..+/,'');
-    var cs=String(currItems[0].datetm).replace(/\..+/,'');
-    if(ps.length>=14 && cs.length>=14){
-      var pd=new Date(ps.slice(0,4)+'-'+ps.slice(4,6)+'-'+ps.slice(6,8)+'T'+ps.slice(8,10)+':'+ps.slice(10,12)+':'+ps.slice(12,14));
-      var cd=new Date(cs.slice(0,4)+'-'+cs.slice(4,6)+'-'+cs.slice(6,8)+'T'+cs.slice(8,10)+':'+cs.slice(10,12)+':'+cs.slice(12,14));
-      var diffMin=Math.round((cd-pd)/60000);
-      if(diffMin>0){ intervalMin=diffMin; } // 시간차 항상 정규화
-    }
+  var pd=parseDt(prevDatetm);
+  var cd=parseDt(currDatetm);
+  if(pd && cd){
+    var diffMin=Math.round((cd-pd)/60000);
+    if(diffMin<=0) return{delta:null,eta:null,avail:avail};
+    if(diffMin>60) return{delta:null,eta:null,avail:avail};
+    intervalMin=diffMin;
   }
 
-  // 5분 기준으로 정규화
   var delta5=Math.round(delta*(5/intervalMin));
   var eta=null;
   if(delta5>0&&avail>0) eta=Math.round(avail/(delta5/5));
+  console.log('[터미널합산] prevP:'+prevP+' currP:'+currP+' delta:'+delta+' interval:'+intervalMin+'분 → delta5:'+delta5+' eta:'+eta);
   return{delta:delta5, eta:eta, avail:avail};
 }
 
-function updateSummaryMetrics(items){
+function updateSummaryMetrics(items, currDatetm){
   var t1=items.filter(function(i){return getTerm(i.floor)==='T1';});
   var t2=items.filter(function(i){return getTerm(i.floor)==='T2';});
 
@@ -442,7 +455,7 @@ function updateSummaryMetrics(items){
     {list:t2, prefix:'t2'},
     {list:items, prefix:'total'}
   ].forEach(function(g){
-    var m=calcTermMetrics(g.list);
+    var m=calcTermMetrics(g.list, currDatetm);
     var dEl=document.getElementById(g.prefix+'Delta');
     var eEl=document.getElementById(g.prefix+'Eta');
     if(!m || m.delta===null){
@@ -528,9 +541,9 @@ async function loadData(){
     if(!items||!items.length)throw new Error('데이터 없음');
 
     callCount++;
-    currItems = items; // 시간차 계산용 현재 데이터 저장
+    var currDatetm = items[0] ? String(items[0].datetm) : null;
     document.getElementById('updateTime').textContent=fmtDt(items[0]&&items[0].datetm);
-    renderAll(items);
+    renderAll(items, currDatetm); // 현재 시각 전달
 
     // 2회차부터 안내문구 제거
     if(callCount>=2)document.getElementById('firstNotice').style.display='none';
@@ -538,7 +551,9 @@ async function loadData(){
     document.getElementById('loadingState').classList.add('hidden');
     document.getElementById('mainContent').classList.remove('hidden');
 
-    prevItems=items; // 다음 호출을 위해 저장
+    // 렌더링 완료 후 prevItems/prevDatetm 업데이트 (다음 호출용)
+    prevItems = items;
+    prevDatetm = currDatetm;
   }catch(err){
     if(callCount===0){
       document.getElementById('loadingState').classList.add('hidden');
