@@ -45,14 +45,14 @@
   .summary-card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:16px 20px;position:relative;overflow:hidden;backdrop-filter:blur(10px);transition:transform 0.2s;}
   .summary-card:hover{transform:translateY(-2px);}
   .summary-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
-  .summary-card.t1::before{background:linear-gradient(90deg,var(--sky),transparent);}
-  .summary-card.t2::before{background:linear-gradient(90deg,var(--gold),transparent);}
-  .summary-card.total::before{background:linear-gradient(90deg,var(--green),transparent);}
+  .summary-card.sc-t1::before{background:linear-gradient(90deg,var(--sky),transparent);}
+  .summary-card.sc-t2::before{background:linear-gradient(90deg,var(--gold),transparent);}
+  .summary-card.sc-total::before{background:linear-gradient(90deg,var(--green),transparent);}
   .summary-label{font-size:10px;letter-spacing:1.5px;color:var(--muted);margin-bottom:6px;}
   .summary-value{font-family:'Oswald',sans-serif;font-size:30px;font-weight:600;line-height:1;margin-bottom:3px;}
-  .summary-card.t1 .summary-value{color:var(--sky-light);}
-  .summary-card.t2 .summary-value{color:var(--gold);}
-  .summary-card.total .summary-value{color:var(--green);}
+  .summary-card.sc-t1 .summary-value{color:var(--sky-light);}
+  .summary-card.sc-t2 .summary-value{color:var(--gold);}
+  .summary-card.sc-total .summary-value{color:var(--green);}
   .summary-sub{font-size:10px;color:var(--muted);}
   .summary-icon{position:absolute;top:12px;right:12px;font-size:22px;opacity:0.1;}
   .summary-metrics{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
@@ -169,7 +169,7 @@
   </div>
   <div id="mainContent" class="hidden">
     <div class="summary-row">
-      <div class="summary-card t1">
+      <div class="summary-card sc-t1">
         <div class="summary-icon">🅿</div>
         <div class="summary-label">제1여객터미널 · T1</div>
         <div class="summary-value" id="t1Rate">--%</div>
@@ -179,7 +179,7 @@
           <span class="sm-badge sm-flat" id="t1Eta">⏱ 수집중</span>
         </div>
       </div>
-      <div class="summary-card t2">
+      <div class="summary-card sc-t2">
         <div class="summary-icon">🅿</div>
         <div class="summary-label">제2여객터미널 · T2</div>
         <div class="summary-value" id="t2Rate">--%</div>
@@ -189,7 +189,7 @@
           <span class="sm-badge sm-flat" id="t2Eta">⏱ 수집중</span>
         </div>
       </div>
-      <div class="summary-card total">
+      <div class="summary-card sc-total">
         <div class="summary-icon">📊</div>
         <div class="summary-label">전체 주차장</div>
         <div class="summary-value" id="totalRate">--%</div>
@@ -324,13 +324,13 @@ function renderMetrics(delta, eta, rate){
   if(delta!==null){
     if(delta>0){
       dClass='mv-up'; dArrow='↑';
-      dText='증가 +'+delta+'대/5분';
+      dText='+'+delta+'대/5분';
     } else if(delta<0){
       dClass='mv-down'; dArrow='↓';
-      dText='감소 '+delta+'대/5분';
+      dText=delta+'대/5분';
     } else {
       dClass='mv-flat'; dArrow='→';
-      dText='그대로';
+      dText='0대/5분';
     }
   }
   // 만차예상 (5분 단위 기준 → 분 환산)
@@ -449,11 +449,11 @@ function updateSummaryMetrics(items){
     }
     // 순증감
     if(m.delta>0){
-      dEl.textContent='↑ 증가 +'+m.delta+'대/5분'; dEl.className='sm-badge sm-up';
+      dEl.textContent='+'+m.delta+'대/5분'; dEl.className='sm-badge sm-up';
     } else if(m.delta<0){
-      dEl.textContent='↓ 감소 '+m.delta+'대/5분'; dEl.className='sm-badge sm-down';
+      dEl.textContent=m.delta+'대/5분'; dEl.className='sm-badge sm-down';
     } else {
-      dEl.textContent='→ 그대로'; dEl.className='sm-badge sm-flat';
+      dEl.textContent='→ 0대/5분'; dEl.className='sm-badge sm-flat';
     }
     // 만차예상
     var s=sumItems(g.list);
@@ -486,27 +486,26 @@ function updateSummary(items, filter){
   var t2=items.filter(function(i){return getTerm(i.floor)==='T2';});
   var s1=sumItems(t1), s2=sumItems(t2), st=sumItems(items);
 
-  // T1 카드
+  // T1 카드 — 항상 T1 데이터 고정
   document.getElementById('t1Rate').textContent = s1.rate+'%';
   document.getElementById('t1Sub').textContent =
     s1.parked.toLocaleString()+'대 / '+s1.area.toLocaleString()+'면 ('+s1.avail.toLocaleString()+'면 여유)';
 
-  // T2 카드
+  // T2 카드 — 항상 T2 데이터 고정
   document.getElementById('t2Rate').textContent = s2.rate+'%';
   document.getElementById('t2Sub').textContent =
     s2.parked.toLocaleString()+'대 / '+s2.area.toLocaleString()+'면 ('+s2.avail.toLocaleString()+'면 여유)';
 
-  // 전체 카드
+  // 전체 카드 — 항상 전체 데이터 고정
   document.getElementById('totalRate').textContent = st.rate+'%';
   document.getElementById('totalSub').textContent =
     st.parked.toLocaleString()+'대 / '+st.area.toLocaleString()+'면 ('+st.avail.toLocaleString()+'면 여유)';
 
-  // 탭 필터에 따라 카드 강조
-  document.querySelector('.sc-t1').style.opacity = (filter==='T2') ? '0.35' : '1';
-  document.querySelector('.sc-t2').style.opacity = (filter==='T1') ? '0.35' : '1';
-  document.querySelector('.sc-total').style.opacity = '1';
+  // 탭 필터에 따라 비선택 카드 흐리게
+  document.querySelector('.sc-t1').style.opacity    = (filter==='T2') ? '0.3' : '1';
+  document.querySelector('.sc-t2').style.opacity    = (filter==='T1') ? '0.3' : '1';
+  document.querySelector('.sc-total').style.opacity = (filter!=='all') ? '0.3' : '1';
 
-  // 경보 배너는 전체 기준
   updateBanner(items);
 }
 
