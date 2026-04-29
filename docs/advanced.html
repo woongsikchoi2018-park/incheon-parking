@@ -55,6 +55,15 @@
   .summary-card.total .summary-value{color:var(--green);}
   .summary-sub{font-size:10px;color:var(--muted);}
   .summary-icon{position:absolute;top:12px;right:12px;font-size:22px;opacity:0.1;}
+  .summary-metrics{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+  .sm-badge{font-family:'Share Tech Mono',monospace;font-size:10px;background:rgba(0,0,0,0.25);border-radius:6px;padding:3px 8px;white-space:nowrap;}
+  .sm-up{color:var(--orange);}
+  .sm-down{color:var(--green);}
+  .sm-flat{color:var(--muted);}
+  .sm-urgent{color:var(--red);animation:blink 0.8s infinite;}
+  .sm-warn{color:var(--orange);}
+  .sm-safe{color:var(--green);}
+  .sm-neutral{color:var(--muted);}
 
   /* 구역 탭 */
   .zone-tab-row{display:flex;gap:4px;margin-bottom:16px;background:rgba(255,255,255,0.04);border-radius:10px;padding:4px;width:fit-content;}
@@ -160,9 +169,36 @@
   </div>
   <div id="mainContent" class="hidden">
     <div class="summary-row">
-      <div class="summary-card t1"><div class="summary-icon">🅿</div><div class="summary-label">제1여객터미널 · T1</div><div class="summary-value" id="t1Rate">--%</div><div class="summary-sub" id="t1Sub">-- / -- 면</div></div>
-      <div class="summary-card t2"><div class="summary-icon">🅿</div><div class="summary-label">제2여객터미널 · T2</div><div class="summary-value" id="t2Rate">--%</div><div class="summary-sub" id="t2Sub">-- / -- 면</div></div>
-      <div class="summary-card total"><div class="summary-icon">📊</div><div class="summary-label">전체 주차장</div><div class="summary-value" id="totalRate">--%</div><div class="summary-sub" id="totalSub">-- / -- 면</div></div>
+      <div class="summary-card t1">
+        <div class="summary-icon">🅿</div>
+        <div class="summary-label">제1여객터미널 · T1</div>
+        <div class="summary-value" id="t1Rate">--%</div>
+        <div class="summary-sub" id="t1Sub">-- / -- 면 (-- 여유)</div>
+        <div class="summary-metrics">
+          <span class="sm-badge sm-neutral" id="t1Delta">↔ 수집중</span>
+          <span class="sm-badge sm-neutral" id="t1Eta">⏱ 수집중</span>
+        </div>
+      </div>
+      <div class="summary-card t2">
+        <div class="summary-icon">🅿</div>
+        <div class="summary-label">제2여객터미널 · T2</div>
+        <div class="summary-value" id="t2Rate">--%</div>
+        <div class="summary-sub" id="t2Sub">-- / -- 면 (-- 여유)</div>
+        <div class="summary-metrics">
+          <span class="sm-badge sm-neutral" id="t2Delta">↔ 수집중</span>
+          <span class="sm-badge sm-neutral" id="t2Eta">⏱ 수집중</span>
+        </div>
+      </div>
+      <div class="summary-card total">
+        <div class="summary-icon">📊</div>
+        <div class="summary-label">전체 주차장</div>
+        <div class="summary-value" id="totalRate">--%</div>
+        <div class="summary-sub" id="totalSub">-- / -- 면 (-- 여유)</div>
+        <div class="summary-metrics">
+          <span class="sm-badge sm-neutral" id="totalDelta">↔ 수집중</span>
+          <span class="sm-badge sm-neutral" id="totalEta">⏱ 수집중</span>
+        </div>
+      </div>
     </div>
     <div id="firstNotice" class="first-load-notice">⏱ 첫 접속 시 GitHub 캐시 데이터로 즉시 표시됩니다. 캐시가 없을 경우 잠시 후 자동 업데이트됩니다.</div>
     <div class="zone-tab-row">
@@ -174,7 +210,7 @@
     <div id="t2Section"><div class="section-title">T2 제2여객터미널</div><div class="parking-grid" id="t2Grid"></div></div>
   </div>
 </main>
-<footer>데이터 출처: 공공데이터포털 · 교통서비스처 교통시설팀 &nbsp;|&nbsp; 1분 갱신 · 테스트 버전</footer>
+<footer>데이터 출처: 공공데이터포털 · 인천국제공항공사 주차 현황 조회 서비스 &nbsp;|&nbsp; 1분 갱신 · 테스트 버전</footer>
 
 <script>
 var API_KEY = '0a14146eb3792c2431da885ae66255e06cb942e10e85ddd953de019de7af777d';
@@ -354,7 +390,8 @@ function buildCard(item){
 function sumItems(list){
   var ta=0,tp=0;
   list.forEach(function(i){var a=parseInt(i.parkingarea)||0,p=Math.max(0,parseInt(i.parking)||0);if(a>0){ta+=a;tp+=p;}});
-  return{rate:ta?Math.round((tp/ta)*100):0,area:ta,parked:tp};
+  var av=Math.max(0,ta-tp);
+  return{rate:ta?Math.round((tp/ta)*100):0,area:ta,parked:tp,avail:av};
 }
 
 // ── 렌더링 ────────────────────────────────────────────────
@@ -365,10 +402,74 @@ function renderAll(items){
   document.getElementById('t2Grid').innerHTML=t2.length?t2.map(buildCard).join(''):'<p style="color:var(--muted);padding:12px">데이터 없음</p>';
   lastItems = items;
   updateSummary(items, currentFilter);
+  updateSummaryMetrics(items);
 }
 
 var currentFilter = 'all';
 var lastItems = null;
+
+// ── 터미널별 순증감/만차예상 계산 ────────────────────────
+function calcTermMetrics(termItems){
+  if(!prevItems) return null;
+
+  var currP=0, currA=0, prevP=0;
+  termItems.forEach(function(i){
+    var a=parseInt(i.parkingarea)||0, p=Math.max(0,parseInt(i.parking)||0);
+    if(a>0){currA+=a; currP+=p;}
+  });
+  // 이전 데이터에서 같은 구역 합산
+  termItems.forEach(function(i){
+    var prev=prevItems.find(function(x){return x.floor===i.floor;});
+    if(prev){var a=parseInt(i.parkingarea)||0; if(a>0) prevP+=Math.max(0,parseInt(prev.parking)||0);}
+  });
+
+  var delta=currP-prevP;
+  var avail=Math.max(0,currA-currP);
+  var eta=null;
+  if(delta>0&&avail>0) eta=Math.round(avail/(delta/5));
+  return{delta:delta, eta:eta, avail:avail};
+}
+
+function updateSummaryMetrics(items){
+  var t1=items.filter(function(i){return getTerm(i.floor)==='T1';});
+  var t2=items.filter(function(i){return getTerm(i.floor)==='T2';});
+
+  [
+    {list:t1, prefix:'t1'},
+    {list:t2, prefix:'t2'},
+    {list:items, prefix:'total'}
+  ].forEach(function(g){
+    var m=calcTermMetrics(g.list);
+    var dEl=document.getElementById(g.prefix+'Delta');
+    var eEl=document.getElementById(g.prefix+'Eta');
+    if(!m){
+      dEl.textContent='↔ 수집중'; dEl.className='sm-badge sm-neutral';
+      eEl.textContent='⏱ 수집중'; eEl.className='sm-badge sm-neutral';
+      return;
+    }
+    // 순증감
+    if(m.delta>0){
+      dEl.textContent='↑ 증가 +'+m.delta+'대/5분'; dEl.className='sm-badge sm-up';
+    } else if(m.delta<0){
+      dEl.textContent='↓ 감소 '+m.delta+'대/5분'; dEl.className='sm-badge sm-down';
+    } else {
+      dEl.textContent='→ 그대로'; dEl.className='sm-badge sm-flat';
+    }
+    // 만차예상
+    var s=sumItems(g.list);
+    if(s.rate>=110){eEl.textContent='⚠️ 초과중'; eEl.className='sm-badge sm-urgent';}
+    else if(s.rate>=95){eEl.textContent='⏱ 만차'; eEl.className='sm-badge sm-urgent';}
+    else if(m.eta!==null){
+      if(m.eta<=10){eEl.textContent='⏱ 약 '+m.eta+'분 후 만차'; eEl.className='sm-badge sm-urgent';}
+      else if(m.eta<=30){eEl.textContent='⏱ 약 '+m.eta+'분 후 만차'; eEl.className='sm-badge sm-warn';}
+      else{eEl.textContent='⏱ 약 '+m.eta+'분 여유'; eEl.className='sm-badge sm-safe';}
+    } else if(m.delta<=0){
+      eEl.textContent='⏱ 감소 중'; eEl.className='sm-badge sm-safe';
+    } else {
+      eEl.textContent='⏱ --'; eEl.className='sm-badge sm-neutral';
+    }
+  });
+}
 
 function filterZone(t,btn){
   document.querySelectorAll('.zone-tab-btn').forEach(function(b){b.classList.remove('active');});
@@ -396,9 +497,9 @@ function updateSummary(items, filter){
   // T1/T2 요약은 전체일 때만 개별 표시, 필터 시 해당 터미널만 강조
   var s1=sumItems(t1), s2=sumItems(t2);
   document.getElementById('t1Rate').textContent = s1.rate+'%';
-  document.getElementById('t1Sub').textContent = s1.parked.toLocaleString()+' / '+s1.area.toLocaleString()+' 면';
+  document.getElementById('t1Sub').textContent = s1.parked.toLocaleString()+' / '+s1.area.toLocaleString()+'면 ('+s1.avail.toLocaleString()+'면 여유)';
   document.getElementById('t2Rate').textContent = s2.rate+'%';
-  document.getElementById('t2Sub').textContent = s2.parked.toLocaleString()+' / '+s2.area.toLocaleString()+' 면';
+  document.getElementById('t2Sub').textContent = s2.parked.toLocaleString()+' / '+s2.area.toLocaleString()+'면 ('+s2.avail.toLocaleString()+'면 여유)';
 
   // 선택된 터미널 카드 강조
   document.querySelector('.summary-card.t1').style.opacity = (filter==='T2') ? '0.35' : '1';
