@@ -343,7 +343,7 @@ function renderMetrics(delta, eta, rate){
     // eta는 이미 분 단위로 계산됨
     if(eta<=10){eClass='mv-urgent';eText='약 '+eta+'분 후 만차';}
     else if(eta<=30){eClass='mv-warn';eText='약 '+eta+'분 후 만차';}
-    else{eClass='mv-safe';eText='약 '+eta+'분 여유';}
+    else{eClass='mv-safe';eText='약 '+eta+'분 소요';}
   } else if(delta!==null&&delta<=0){
     eClass='mv-safe';eText='감소 중';
   } else if(delta===null){
@@ -478,7 +478,7 @@ function updateSummaryMetrics(items, currDatetm){
     else if(m.eta!==null){
       if(m.eta<=10){eEl.textContent='⏱ 약 '+m.eta+'분 후 만차'; eEl.className='sm-badge sm-urgent';}
       else if(m.eta<=30){eEl.textContent='⏱ 약 '+m.eta+'분 후 만차'; eEl.className='sm-badge sm-warn';}
-      else{eEl.textContent='⏱ 약 '+m.eta+'분 여유'; eEl.className='sm-badge sm-safe';}
+      else{eEl.textContent='⏱ 약 '+m.eta+'분 소요'; eEl.className='sm-badge sm-safe';}
     } else if(m.delta<=0){
       eEl.textContent='⏱ 감소 중'; eEl.className='sm-badge sm-safe';
     } else {
@@ -525,7 +525,7 @@ function updateSummary(items, filter){
 }
 
 // ── 메인 로드 ─────────────────────────────────────────────
-async function loadData(){
+async function loadData(isManual){
   var btn=document.getElementById('refreshBtn');
   btn.disabled=true;
   if(callCount===0){
@@ -551,9 +551,12 @@ async function loadData(){
     document.getElementById('loadingState').classList.add('hidden');
     document.getElementById('mainContent').classList.remove('hidden');
 
-    // 렌더링 완료 후 prevItems/prevDatetm 업데이트 (다음 호출용)
-    prevItems = items;
-    prevDatetm = currDatetm;
+    // 수동 새로고침이면 prevItems 유지 (직전 데이터와 비교 유지)
+    // 자동 1분 갱신이면 현재값을 다음 비교용으로 저장
+    if(!isManual){
+      prevItems = items;
+      prevDatetm = currDatetm;
+    }
   }catch(err){
     if(callCount===0){
       document.getElementById('loadingState').classList.add('hidden');
