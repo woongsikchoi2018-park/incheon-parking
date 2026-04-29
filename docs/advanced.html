@@ -175,8 +175,8 @@
         <div class="summary-value" id="t1Rate">--%</div>
         <div class="summary-sub" id="t1Sub">-- / -- 면 (-- 여유)</div>
         <div class="summary-metrics">
-          <span class="sm-badge sm-neutral" id="t1Delta">↔ 수집중</span>
-          <span class="sm-badge sm-neutral" id="t1Eta">⏱ 수집중</span>
+          <span class="sm-badge sm-flat" id="t1Delta">↔ 수집중</span>
+          <span class="sm-badge sm-flat" id="t1Eta">⏱ 수집중</span>
         </div>
       </div>
       <div class="summary-card t2">
@@ -185,8 +185,8 @@
         <div class="summary-value" id="t2Rate">--%</div>
         <div class="summary-sub" id="t2Sub">-- / -- 면 (-- 여유)</div>
         <div class="summary-metrics">
-          <span class="sm-badge sm-neutral" id="t2Delta">↔ 수집중</span>
-          <span class="sm-badge sm-neutral" id="t2Eta">⏱ 수집중</span>
+          <span class="sm-badge sm-flat" id="t2Delta">↔ 수집중</span>
+          <span class="sm-badge sm-flat" id="t2Eta">⏱ 수집중</span>
         </div>
       </div>
       <div class="summary-card total">
@@ -195,8 +195,8 @@
         <div class="summary-value" id="totalRate">--%</div>
         <div class="summary-sub" id="totalSub">-- / -- 면 (-- 여유)</div>
         <div class="summary-metrics">
-          <span class="sm-badge sm-neutral" id="totalDelta">↔ 수집중</span>
-          <span class="sm-badge sm-neutral" id="totalEta">⏱ 수집중</span>
+          <span class="sm-badge sm-flat" id="totalDelta">↔ 수집중</span>
+          <span class="sm-badge sm-flat" id="totalEta">⏱ 수집중</span>
         </div>
       </div>
     </div>
@@ -443,8 +443,8 @@ function updateSummaryMetrics(items){
     var dEl=document.getElementById(g.prefix+'Delta');
     var eEl=document.getElementById(g.prefix+'Eta');
     if(!m){
-      dEl.textContent='↔ 수집중'; dEl.className='sm-badge sm-neutral';
-      eEl.textContent='⏱ 수집중'; eEl.className='sm-badge sm-neutral';
+      dEl.textContent='↔ 수집중'; dEl.className='sm-badge sm-flat';
+      eEl.textContent='⏱ 수집중'; eEl.className='sm-badge sm-flat';
       return;
     }
     // 순증감
@@ -466,7 +466,7 @@ function updateSummaryMetrics(items){
     } else if(m.delta<=0){
       eEl.textContent='⏱ 감소 중'; eEl.className='sm-badge sm-safe';
     } else {
-      eEl.textContent='⏱ --'; eEl.className='sm-badge sm-neutral';
+      eEl.textContent='⏱ --'; eEl.className='sm-badge sm-flat';
     }
   });
 }
@@ -484,29 +484,30 @@ function filterZone(t,btn){
 function updateSummary(items, filter){
   var t1=items.filter(function(i){return getTerm(i.floor)==='T1';});
   var t2=items.filter(function(i){return getTerm(i.floor)==='T2';});
+  var s1=sumItems(t1), s2=sumItems(t2), st=sumItems(items);
 
-  var list = filter==='T1' ? t1 : filter==='T2' ? t2 : items;
-  var s = sumItems(list);
-
-  // 라벨도 필터에 맞게
-  var label = filter==='T1' ? '제1여객터미널 · T1' : filter==='T2' ? '제2여객터미널 · T2' : '전체 주차장';
-  document.querySelector('.summary-card.total .summary-label').textContent = label;
-  document.getElementById('totalRate').textContent = s.rate+'%';
-  document.getElementById('totalSub').textContent = s.parked.toLocaleString()+' / '+s.area.toLocaleString()+' 면';
-
-  // T1/T2 요약은 전체일 때만 개별 표시, 필터 시 해당 터미널만 강조
-  var s1=sumItems(t1), s2=sumItems(t2);
+  // T1 카드
   document.getElementById('t1Rate').textContent = s1.rate+'%';
-  document.getElementById('t1Sub').textContent = s1.parked.toLocaleString()+' / '+s1.area.toLocaleString()+'면 ('+s1.avail.toLocaleString()+'면 여유)';
+  document.getElementById('t1Sub').textContent =
+    s1.parked.toLocaleString()+'대 / '+s1.area.toLocaleString()+'면 ('+s1.avail.toLocaleString()+'면 여유)';
+
+  // T2 카드
   document.getElementById('t2Rate').textContent = s2.rate+'%';
-  document.getElementById('t2Sub').textContent = s2.parked.toLocaleString()+' / '+s2.area.toLocaleString()+'면 ('+s2.avail.toLocaleString()+'면 여유)';
+  document.getElementById('t2Sub').textContent =
+    s2.parked.toLocaleString()+'대 / '+s2.area.toLocaleString()+'면 ('+s2.avail.toLocaleString()+'면 여유)';
 
-  // 선택된 터미널 카드 강조
-  document.querySelector('.summary-card.t1').style.opacity = (filter==='T2') ? '0.35' : '1';
-  document.querySelector('.summary-card.t2').style.opacity = (filter==='T1') ? '0.35' : '1';
-  document.querySelector('.summary-card.total').style.opacity = '1';
+  // 전체 카드
+  document.getElementById('totalRate').textContent = st.rate+'%';
+  document.getElementById('totalSub').textContent =
+    st.parked.toLocaleString()+'대 / '+st.area.toLocaleString()+'면 ('+st.avail.toLocaleString()+'면 여유)';
 
-  updateBanner(list);
+  // 탭 필터에 따라 카드 강조
+  document.querySelector('.sc-t1').style.opacity = (filter==='T2') ? '0.35' : '1';
+  document.querySelector('.sc-t2').style.opacity = (filter==='T1') ? '0.35' : '1';
+  document.querySelector('.sc-total').style.opacity = '1';
+
+  // 경보 배너는 전체 기준
+  updateBanner(items);
 }
 
 // ── 메인 로드 ─────────────────────────────────────────────
