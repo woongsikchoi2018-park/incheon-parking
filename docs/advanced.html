@@ -11,12 +11,6 @@
   body{font-family:'Noto Sans KR',sans-serif;background:var(--navy);color:var(--white);min-height:100vh;overflow-x:hidden;}
   body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(51,153,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(51,153,255,0.04) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
 
-  /* 경보 배너 */
-  #alertBanner{display:none;position:relative;z-index:20;padding:12px 32px;font-size:13px;font-weight:700;letter-spacing:1px;text-align:center;}
-  #alertBanner.caution{background:rgba(255,255,255,0.1);border-bottom:2px solid rgba(255,255,255,0.4);color:#ffffff;}
-  #alertBanner.warning{background:rgba(255,102,51,0.2);border-bottom:2px solid var(--orange);color:var(--orange);animation:blink 1.5s infinite;}
-  #alertBanner.critical{background:rgba(255,34,68,0.25);border-bottom:2px solid var(--red);color:var(--red);animation:blink 0.8s infinite;}
-  @keyframes blink{0%,100%{opacity:1;}50%{opacity:0.6;}}
 
   header{position:relative;z-index:10;padding:16px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;background:linear-gradient(180deg,rgba(10,22,40,0.95) 0%,transparent 100%);backdrop-filter:blur(10px);}
   .header-left{display:flex;align-items:center;gap:14px;}
@@ -139,20 +133,18 @@
 </head>
 <body>
 
-<div id="alertBanner"></div>
-
 <header>
   <div class="header-left">
     <div class="logo-icon">&#9992;</div>
     <div class="header-title">
       <h1>INCHEON AIRPORT PARKING</h1>
-      <p>&#9650; 변화량 모니터링 — 순증가 · 만차예상 · 경보 </p>
+      <p>&#9650; 고급 모니터링 — 순증감 · 만차예상 · 내부 운영자용</p>
     </div>
   </div>
   <div class="header-right">
     <div class="live-badge"><div class="live-dot"></div>LIVE</div>
     <div class="update-time"><span id="updateTime">--:--:--</span>데이터 기준</div>
-    <a href="./index1.html" class="btn">← 기본 현황</a>
+    <a href="./index.html" class="btn">← 기본 현황</a>
     <button class="btn" id="refreshBtn" onclick="loadData()">↻ 새로고침</button>
   </div>
 </header>
@@ -210,12 +202,13 @@
     <div id="t2Section"><div class="section-title">T2 제2여객터미널</div><div class="parking-grid" id="t2Grid"></div></div>
   </div>
 </main>
-<footer>데이터 출처: 공공데이터포털 · 교통시설팀 &nbsp;|&nbsp; 1분 갱신 · 공항내부 사용자버전</footer>
+<footer>데이터 출처: 공공데이터포털 &nbsp;|&nbsp; 교통시설팀 · 내부 운영자용 &nbsp;|&nbsp; 1분 갱신</footer>
 
 <script>
 var API_KEY = '0a14146eb3792c2431da885ae66255e06cb942e10e85ddd953de019de7af777d';
 var API_URL = 'https://apis.data.go.kr/B551177/StatusOfParking/getTrackingParking?serviceKey='+API_KEY+'&numOfRows=100&pageNo=1&type=json';
 var prevItems = null;
+var currItems = null; // 현재 데이터 (시간차 계산용)
 var callCount = 0;
 var GH_JSON = 'https://woongsikchoi2018-park.github.io/incheon-parking/parking.json';
 
@@ -272,24 +265,6 @@ function getCardClass(r){
   return 'parking-card';
 }
 
-// ── 경보 배너 ─────────────────────────────────────────────
-function updateBanner(items){
-  var ta=0,tp=0;
-  items.forEach(function(i){var a=parseInt(i.parkingarea)||0;if(a>0){ta+=a;tp+=Math.max(0,parseInt(i.parking)||0);}});
-  var r=ta?Math.round((tp/ta)*100):0;
-  var b=document.getElementById('alertBanner');
-  if(r>=110){
-    b.style.display='block';b.className='critical';
-    b.innerHTML='🚨 긴급 — 전체 주차율 '+r+'% 초과 | 주차면 초과 상태. 즉각 조치 필요!';
-  } else if(r>=95){
-    b.style.display='block';b.className='warning';
-    b.innerHTML='⚠️ 경고 — 전체 주차율 '+r+'% | 만차 임박. 운영 요원 즉시 배치 바랍니다.';
-  } else if(r>=85){
-    b.style.display='block';b.className='caution';
-    b.innerHTML='📢 주의 — 전체 주차율 '+r+'% | 혼잡 예상. 모니터링을 강화해 주세요.';
-  } else {
-    b.style.display='none';b.className='';
-  }
 }
 
 // ── 게이지 SVG ────────────────────────────────────────────
@@ -310,12 +285,27 @@ function calcMetrics(floor, currP, currA){
   for(var i=0;i<prevItems.length;i++){if(prevItems[i].floor===floor){prev=prevItems[i];break;}}
   if(!prev)return{delta:null,eta:null};
   var prevP=Math.max(0,parseInt(prev.parking)||0);
-  var delta=currP-prevP;        // 5분간 변화량
+  var delta=currP-prevP;
   var avail=Math.max(0,currA-currP);
+
+  // 시간 차이 계산 (분) — prevItems의 datetm과 현재 datetm 비교
+  var intervalMin=5; // 기본 5분
+  if(prev.datetm && currItems && currItems[0] && currItems[0].datetm){
+    var ps=String(prev.datetm).replace(/\..+/,'');
+    var cs=String(currItems[0].datetm).replace(/\..+/,'');
+    if(ps.length>=14 && cs.length>=14){
+      var pd=new Date(ps.slice(0,4)+'-'+ps.slice(4,6)+'-'+ps.slice(6,8)+'T'+ps.slice(8,10)+':'+ps.slice(10,12)+':'+ps.slice(12,14));
+      var cd=new Date(cs.slice(0,4)+'-'+cs.slice(4,6)+'-'+cs.slice(6,8)+'T'+cs.slice(8,10)+':'+cs.slice(10,12)+':'+cs.slice(12,14));
+      var diffMin=Math.round((cd-pd)/60000);
+      if(diffMin>0 && diffMin<=30) intervalMin=diffMin; // 30분 이상이면 무시
+    }
+  }
+
+  // 5분 기준으로 정규화
+  var delta5=Math.round(delta*(5/intervalMin));
   var eta=null;
-  // 5분당 delta대 증가 → 분당 delta/5대 → 만차까지 avail/(delta/5)분
-  if(delta>0&&avail>0) eta=Math.round(avail/(delta/5));
-  return{delta:delta,eta:eta};
+  if(delta5>0&&avail>0) eta=Math.round(avail/(delta5/5));
+  return{delta:delta5, eta:eta};
 }
 
 function renderMetrics(delta, eta, rate){
@@ -417,7 +407,6 @@ function calcTermMetrics(termItems){
     var a=parseInt(i.parkingarea)||0, p=Math.max(0,parseInt(i.parking)||0);
     if(a>0){currA+=a; currP+=p;}
   });
-  // 이전 데이터에서 같은 구역 합산
   termItems.forEach(function(i){
     var prev=prevItems.find(function(x){return x.floor===i.floor;});
     if(prev){var a=parseInt(i.parkingarea)||0; if(a>0) prevP+=Math.max(0,parseInt(prev.parking)||0);}
@@ -425,9 +414,25 @@ function calcTermMetrics(termItems){
 
   var delta=currP-prevP;
   var avail=Math.max(0,currA-currP);
+
+  // 시간 차이 계산 (분)
+  var intervalMin=5;
+  if(prevItems[0] && prevItems[0].datetm && currItems && currItems[0] && currItems[0].datetm){
+    var ps=String(prevItems[0].datetm).replace(/\..+/,'');
+    var cs=String(currItems[0].datetm).replace(/\..+/,'');
+    if(ps.length>=14 && cs.length>=14){
+      var pd=new Date(ps.slice(0,4)+'-'+ps.slice(4,6)+'-'+ps.slice(6,8)+'T'+ps.slice(8,10)+':'+ps.slice(10,12)+':'+ps.slice(12,14));
+      var cd=new Date(cs.slice(0,4)+'-'+cs.slice(4,6)+'-'+cs.slice(6,8)+'T'+cs.slice(8,10)+':'+cs.slice(10,12)+':'+cs.slice(12,14));
+      var diffMin=Math.round((cd-pd)/60000);
+      if(diffMin>0 && diffMin<=30) intervalMin=diffMin;
+    }
+  }
+
+  // 5분 기준으로 정규화
+  var delta5=Math.round(delta*(5/intervalMin));
   var eta=null;
-  if(delta>0&&avail>0) eta=Math.round(avail/(delta/5));
-  return{delta:delta, eta:eta, avail:avail};
+  if(delta5>0&&avail>0) eta=Math.round(avail/(delta5/5));
+  return{delta:delta5, eta:eta, avail:avail};
 }
 
 function updateSummaryMetrics(items){
@@ -506,7 +511,6 @@ function updateSummary(items, filter){
   document.querySelector('.sc-t2').style.opacity    = (filter==='T1') ? '0.3' : '1';
   document.querySelector('.sc-total').style.opacity = (filter!=='all') ? '0.3' : '1';
 
-  updateBanner(items);
 }
 
 // ── 메인 로드 ─────────────────────────────────────────────
@@ -526,6 +530,7 @@ async function loadData(){
     if(!items||!items.length)throw new Error('데이터 없음');
 
     callCount++;
+    currItems = items; // 시간차 계산용 현재 데이터 저장
     document.getElementById('updateTime').textContent=fmtDt(items[0]&&items[0].datetm);
     renderAll(items);
 
