@@ -21,8 +21,32 @@ header{position:relative;z-index:10;padding:16px 32px;border-bottom:1px solid va
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
 .utime{font-size:10px;color:var(--muted);text-align:right;line-height:1.6;}
 .utime span{display:block;color:var(--sky-light);font-weight:500;font-family:'Share Tech Mono',monospace;}
-.btn{background:rgba(51,153,255,0.1);border:1px solid rgba(51,153,255,0.25);color:var(--sky);padding:6px 12px;border-radius:8px;font-family:'Noto Sans KR',sans-serif;font-size:11px;cursor:pointer;transition:all 0.2s;text-decoration:none;display:inline-block;white-space:nowrap;}
-.btn:hover{background:rgba(51,153,255,0.2);}
+.btn{background:rgba(51,153,255,0.08);border:1px solid rgba(51,153,255,0.2);color:var(--muted);padding:6px 12px;border-radius:8px;font-family:'Noto Sans KR',sans-serif;font-size:11px;cursor:pointer;transition:all 0.3s;text-decoration:none;display:inline-block;white-space:nowrap;}
+.btn:hover{background:rgba(51,153,255,0.15);color:var(--sky);}
+/* 새로고침 버튼 — 비활성화 (수집중) */
+#refreshBtn:disabled{
+  background:rgba(120,130,150,0.08);
+  border:1px solid rgba(120,130,150,0.2);
+  color:var(--muted);
+  cursor:not-allowed;
+  opacity:0.5;
+  animation:none;
+}
+/* 새로고침 버튼 — 활성화 (준비됨) */
+#refreshBtn:not(:disabled){
+  background:linear-gradient(135deg,rgba(0,204,119,0.15),rgba(51,153,255,0.15));
+  border:1px solid rgba(0,204,119,0.5);
+  color:var(--green);
+  font-weight:700;
+  box-shadow:0 0 12px rgba(0,204,119,0.2);
+}
+#refreshBtn:not(:disabled):hover{
+  background:linear-gradient(135deg,rgba(0,204,119,0.3),rgba(51,153,255,0.25));
+  box-shadow:0 0 20px rgba(0,204,119,0.4);
+  transform:translateY(-1px);
+}
+  50%{box-shadow:0 0 20px rgba(0,204,119,0.45);}
+}
 .btn:disabled{opacity:0.4;cursor:not-allowed;}
 main{position:relative;z-index:1;padding:20px 32px;max-width:1400px;margin:0 auto;}
 .sbox{text-align:center;padding:60px 20px;color:var(--muted);}
@@ -125,7 +149,7 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
     <a href="./index1.html" class="btn">🅿 기본현황</a>
     <button class="btn" onclick="exportLog()">📥 로그 <span id="logCount">0건</span></button>
     <button class="btn" onclick="clearLog()">🗑</button>
-    <button class="btn" id="refreshBtn" onclick="loadData(true)">&#8635; 새로고침</button>
+    <button class="btn" id="refreshBtn" onclick="loadData(true)" disabled>⏳ 수집 중...</button>
   </div>
 </header>
 <main>
@@ -406,6 +430,21 @@ function renderAll(items,currDatetm,isManual){
   if(prevItems&&prevDatetm&&!isManual)saveLog(items,currDatetm);
   var lc=document.getElementById('logCount');
   if(lc)lc.textContent=getLogCount()+'건';
+
+  // 증감 정보 유효 여부에 따라 새로고침 버튼 상태 변경
+  var iMin=getIntervalMin(currDatetm);
+  var rbtn=document.getElementById('refreshBtn');
+  if(rbtn&&!rbtn._manualDisabled){
+    if(iMin!==null){
+      rbtn.disabled=false;
+      rbtn.innerHTML='&#8635; 새로고침';
+      rbtn.title='클릭하여 최신 데이터로 갱신';
+    } else {
+      rbtn.disabled=true;
+      rbtn.innerHTML='⏳ 수집 중...';
+      rbtn.title='증감 정보 수집 완료 후 활성화 (약 1분)';
+    }
+  }
 }
 
 // ── 구역 필터 ─────────────────────────────────────────────
@@ -490,7 +529,7 @@ async function loadPrevFromCache(){
 // ── 메인 데이터 로드 ──────────────────────────────────────
 async function loadData(isManual){
   var btn=document.getElementById('refreshBtn');
-  if(btn)btn.disabled=true;
+  if(btn){btn.disabled=true;btn._manualDisabled=true;btn.innerHTML='&#8635; 처리중...';}
   // 첫 로드시만 로딩화면
   if(callCount===0){
     document.getElementById('loadingState').classList.remove('hidden');
@@ -525,7 +564,7 @@ async function loadData(isManual){
       document.getElementById('errorState').classList.remove('hidden');
     }
   }finally{
-    if(btn)btn.disabled=false;
+    if(btn){btn._manualDisabled=false;}
   }
 }
 
