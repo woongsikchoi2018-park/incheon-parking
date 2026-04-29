@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>인천국제공항 주차 현황 (기본)</title>
+<title>인천국제공항 주차 현황</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Oswald:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
   :root{--navy:#0a1628;--blue:#1e5fbd;--sky:#3399ff;--sky-light:#66bbff;--gold:#f0b400;--green:#00cc77;--orange:#ff6633;--red:#ff2244;--white:#f0f6ff;--muted:#7a9cc0;--card-bg:rgba(15,32,68,0.85);--border:rgba(51,153,255,0.2);}
@@ -21,9 +21,9 @@
   @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
   .update-time{font-size:11px;color:var(--muted);text-align:right;line-height:1.7;}
   .update-time span{display:block;color:var(--sky-light);font-weight:500;}
-  .btn{background:rgba(51,153,255,0.1);border:1px solid rgba(51,153,255,0.25);color:var(--sky);padding:7px 16px;border-radius:8px;font-family:'Noto Sans KR',sans-serif;font-size:12px;cursor:pointer;transition:all 0.2s;text-decoration:none;display:inline-block;}
-  .btn:hover{background:rgba(51,153,255,0.2);}
-  .btn:disabled{opacity:0.4;cursor:not-allowed;}
+  .refresh-btn{background:rgba(51,153,255,0.1);border:1px solid rgba(51,153,255,0.25);color:var(--sky);padding:7px 18px;border-radius:8px;font-family:'Noto Sans KR',sans-serif;font-size:12px;cursor:pointer;transition:all 0.2s;}
+  .refresh-btn:hover{background:rgba(51,153,255,0.2);}
+  .refresh-btn:disabled{opacity:0.4;cursor:not-allowed;}
   main{position:relative;z-index:1;padding:28px 32px;max-width:1400px;margin:0 auto;}
   .state-box{text-align:center;padding:60px 40px;color:var(--muted);}
   .spinner{width:40px;height:40px;border:3px solid rgba(51,153,255,0.15);border-top-color:var(--sky);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 20px;}
@@ -88,16 +88,16 @@
     <div class="logo-icon">&#9992;</div>
     <div class="header-title">
       <h1>INCHEON AIRPORT PARKING</h1>
-      <p>인천국제공항 실시간 주차 현황 (기본)</p>
+      <p>인천국제공항 실시간 주차 현황</p>
     </div>
   </div>
   <div class="header-right">
     <div class="live-badge"><div class="live-dot"></div>LIVE</div>
     <div class="update-time"><span id="updateTime">--:--:--</span>데이터 기준 시각</div>
-    <a href="./index.html" class="btn">&#9650; 돌아가기</a>
-    <button class="btn" id="refreshBtn" onclick="loadData()">&#8635; 새로고침</button>
+    <button class="refresh-btn" id="refreshBtn" onclick="loadData()">↻ 새로고침</button>
   </div>
 </header>
+
 <main>
   <div id="loadingState" class="state-box">
     <div class="spinner"></div>
@@ -123,13 +123,15 @@
     <div id="t2Section"><div class="section-title">T2 제2여객터미널</div><div class="parking-grid" id="t2Grid"></div></div>
   </div>
 </main>
-<footer>데이터 출처: 공공데이터포털 &nbsp;|&nbsp; 교통시설팀 · 내부 운영자용 &nbsp;|&nbsp; 1분 갱신</footer>
+<footer>데이터 출처: 공공데이터포털 · 인천국제공항공사 주차 현황 조회 서비스 &nbsp;|&nbsp; 1분마다 자동 갱신</footer>
+
 <script>
-var API_KEY='0a14146eb3792c2431da885ae66255e06cb942e10e85ddd953de019de7af777d';
-var API_URL='https://apis.data.go.kr/B551177/StatusOfParking/getTrackingParking?serviceKey='+API_KEY+'&numOfRows=100&pageNo=1&type=json';
-function getTerm(f){return /^T1/i.test(f)?'T1':/^T2/i.test(f)?'T2':'OTHER';}
-function getRate(p,a){return(!a||a<=0)?null:Math.min(100,Math.round((Math.max(0,p)/a)*100));}
-function getColor(r){return r===null?'#4a5568':r>=95?'#ff2244':r>=80?'#ff6633':r>=60?'#f0b400':'#00cc77';}
+var API_KEY = '0a14146eb3792c2431da885ae66255e06cb942e10e85ddd953de019de7af777d';
+var API_URL = 'https://apis.data.go.kr/B551177/StatusOfParking/getTrackingParking?serviceKey=' + API_KEY + '&numOfRows=100&pageNo=1&type=json';
+
+function getTerm(f){ return /^T1/i.test(f)?'T1':/^T2/i.test(f)?'T2':'OTHER'; }
+function getRate(p,a){ return(!a||a<=0)?null:Math.min(100,Math.round((Math.max(0,p)/a)*100)); }
+function getColor(r){ return r===null?'#4a5568':r>=95?'#ff2244':r>=80?'#ff6633':r>=60?'#f0b400':'#00cc77'; }
 function badge(r,a){
   if(!a||a<=0)return '<span class="status-badge badge-closed">미운영</span>';
   if(r>=95)return '<span class="status-badge badge-full">만차</span>';
@@ -144,7 +146,9 @@ function gauge(r,c){
     '</svg><div class="gauge-text"><span class="gauge-pct" style="color:'+c+'">'+(r!==null?r:'--')+'</span><span class="gauge-pct-unit">%</span></div></div>';
 }
 function buildCard(item){
-  var floor=item.floor||'',p=Math.max(0,parseInt(item.parking)||0),a=parseInt(item.parkingarea)||0;
+  var floor=item.floor||'';
+  var p=Math.max(0,parseInt(item.parking)||0);
+  var a=parseInt(item.parkingarea)||0;
   var av=Math.max(0,a-p),r=getRate(p,a),c=getColor(r),term=getTerm(floor);
   var cls='parking-card'+(!a?' closed':r>=95?' full':r>=80?' near-full':'');
   var tag='<span class="terminal-tag '+(term==='T1'?'t1-tag':'t2-tag')+'">'+term+'</span>';
@@ -159,7 +163,10 @@ function buildCard(item){
 }
 function sumItems(list){
   var ta=0,tp=0;
-  list.forEach(function(i){var a=parseInt(i.parkingarea)||0,p=Math.max(0,parseInt(i.parking)||0);if(a>0){ta+=a;tp+=p;}});
+  list.forEach(function(i){
+    var a=parseInt(i.parkingarea)||0,p=Math.max(0,parseInt(i.parking)||0);
+    if(a>0){ta+=a;tp+=p;}
+  });
   return{rate:ta?Math.min(100,Math.round((tp/ta)*100)):0,area:ta,parked:tp};
 }
 function renderAll(items){
@@ -167,15 +174,20 @@ function renderAll(items){
   var t2=items.filter(function(i){return getTerm(i.floor)==='T2';});
   document.getElementById('t1Grid').innerHTML=t1.length?t1.map(buildCard).join(''):'<p style="color:var(--muted);padding:16px">데이터 없음</p>';
   document.getElementById('t2Grid').innerHTML=t2.length?t2.map(buildCard).join(''):'<p style="color:var(--muted);padding:16px">데이터 없음</p>';
-  var s1=sumItems(t1),s2=sumItems(t2),st=sumItems(items);
+  var s1=sumItems(t1),s2=sumItems(t2);
+  var stA=s1.area+s2.area,stP=s1.parked+s2.parked;
+  var stR=stA?Math.min(100,Math.round((stP/stA)*100)):0;
   document.getElementById('t1Rate').textContent=s1.rate+'%';
   document.getElementById('t1Sub').textContent=s1.parked.toLocaleString()+' / '+s1.area.toLocaleString()+' 면';
   document.getElementById('t2Rate').textContent=s2.rate+'%';
   document.getElementById('t2Sub').textContent=s2.parked.toLocaleString()+' / '+s2.area.toLocaleString()+' 면';
-  document.getElementById('totalRate').textContent=st.rate+'%';
-  document.getElementById('totalSub').textContent=st.parked.toLocaleString()+' / '+st.area.toLocaleString()+' 면';
+  document.getElementById('totalRate').textContent=stR+'%';
+  document.getElementById('totalSub').textContent=stP.toLocaleString()+' / '+stA.toLocaleString()+' 면';
 }
-function fmtDt(s){s=String(s||'').replace(/\..+/,'');return s.length>=14?s.slice(0,4)+'.'+s.slice(4,6)+'.'+s.slice(6,8)+' '+s.slice(8,10)+':'+s.slice(10,12)+':'+s.slice(12,14):'--:--:--';}
+function fmtDt(s){
+  s=String(s||'').replace(/\..+/,'');
+  return s.length>=14?s.slice(0,4)+'.'+s.slice(4,6)+'.'+s.slice(6,8)+' '+s.slice(8,10)+':'+s.slice(10,12)+':'+s.slice(12,14):'--:--:--';
+}
 function filterTab(t,btn){
   document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
   btn.classList.add('active');
