@@ -285,24 +285,7 @@ function getCardClass(r){
 }
 
 // ── 경보 배너 ─────────────────────────────────────────────
-function updateBanner(items){
-  var ta=0,tp=0;
-  items.forEach(function(i){var a=parseInt(i.parkingarea)||0;if(a>0){ta+=a;tp+=Math.max(0,parseInt(i.parking)||0);}});
-  var r=ta?Math.round((tp/ta)*100):0;
-  var b=document.getElementById('alertBanner');
-  if(r>=110){
-    b.style.display='block';b.className='critical';
-    b.innerHTML='🚨 긴급 — 전체 주차율 '+r+'% 초과 | 주차면 초과 상태. 즉각 조치 필요!';
-  } else if(r>=95){
-    b.style.display='block';b.className='warning';
-    b.innerHTML='⚠️ 경고 — 전체 주차율 '+r+'% | 만차 임박. 운영 요원 즉시 배치 바랍니다.';
-  } else if(r>=85){
-    b.style.display='block';b.className='caution';
-    b.innerHTML='📢 주의 — 전체 주차율 '+r+'% | 혼잡 예상. 모니터링을 강화해 주세요.';
-  } else {
-    b.style.display='none';b.className='';
-  }
-}
+
 
 // ── 게이지 SVG ────────────────────────────────────────────
 function gauge(r,c){
