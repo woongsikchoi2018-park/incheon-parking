@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>인천공항 주차 현황 v1.3.5</title>
+<title>인천공항 주차 현황 v1.3.6</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Oswald:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#0a1628;--blue:#1e5fbd;--sky:#3399ff;--sky-light:#66bbff;--gold:#f0b400;--green:#00cc77;--orange:#ff6633;--red:#ff2244;--white:#f0f6ff;--muted:#7a9cc0;--card-bg:rgba(15,32,68,0.85);--border:rgba(51,153,255,0.2);}
@@ -142,7 +142,7 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
     <div class="logo">&#9992;</div>
     <div class="htitle">
       <h1>INCHEON AIRPORT PARKING</h1>
-      <p>교통시설팀 · 내부 운영자용 <span style="color:rgba(255,255,255,0.3);font-size:9px;margin-left:4px;">v1.3.5</span></p>
+      <p>교통시설팀 · 내부 운영자용 <span style="color:rgba(255,255,255,0.3);font-size:9px;margin-left:4px;">v1.3.6</span></p>
     </div>
   </div>
   <div class="hr">
@@ -601,7 +601,8 @@ async function loadPrevFromCache(){
 // ── 메인 데이터 로드 ──────────────────────────────────────
 async function loadData(isManual){
   var btn=document.getElementById('refreshBtn');
-  // 버튼은 renderAll에서만 관리
+  // 새로고침 클릭 시 버튼 즉시 비활성화
+  if(btn&&isManual){btn.disabled=true;btn.innerHTML='⏳ 갱신중...';}
   // 첫 로드시만 로딩화면
   if(callCount===0){
     document.getElementById('loadingState').classList.remove('hidden');
@@ -627,9 +628,10 @@ async function loadData(isManual){
 
     // prevItems 업데이트 — 수집 완료 시 또는 첫 로드
     if(callCount<=1||getIntervalMin(currDatetm)!==null){
+      // sessionStorage에 현재 prevItems 저장 (다음 F5때 비교 기준)
+      if(prevItems&&prevDatetm) saveSession(prevItems, prevDatetm);
       prevItems=items;
       prevDatetm=currDatetm;
-      saveSession(items, currDatetm); // 페이지 새로고침 대비 저장
     }
   }catch(err){
     console.error('loadData 오류:',err.message);
@@ -639,7 +641,17 @@ async function loadData(isManual){
       document.getElementById('errorState').classList.remove('hidden');
     }
   }finally{
-    // 버튼은 renderAll에서 관리
+    // 수동 새로고침 버튼 복구 — renderAll 실행 여부와 무관하게
+    if(btn&&isManual){
+      var iMin=getIntervalMin(prevDatetm);
+      if(prevItems&&iMin!==null){
+        btn.disabled=false;
+        btn.innerHTML='&#8635; 새로고침';
+      } else {
+        btn.disabled=true;
+        btn.innerHTML='⏳ 수집 중...';
+      }
+    }
   }
 }
 
