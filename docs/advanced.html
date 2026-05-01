@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>인천공항 주차 현황 v1.2.4</title>
+<title>인천공항 주차 현황 v1.2.6</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Oswald:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#0a1628;--blue:#1e5fbd;--sky:#3399ff;--sky-light:#66bbff;--gold:#f0b400;--green:#00cc77;--orange:#ff6633;--red:#ff2244;--white:#f0f6ff;--muted:#7a9cc0;--card-bg:rgba(15,32,68,0.85);--border:rgba(51,153,255,0.2);}
@@ -127,7 +127,7 @@ main{position:relative;z-index:1;padding:20px 32px;max-width:1400px;margin:0 aut
 .mb{background:rgba(0,0,0,0.25);border-radius:8px;padding:6px 8px;text-align:center;}
 .mbl{font-size:9px;color:var(--muted);letter-spacing:0.5px;margin-bottom:3px;}
 .mbv{font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;line-height:1.2;}
-.mb-spark{display:flex;align-items:center;justify-content:center;height:24px;}
+.mb-spark{display:flex;align-items:center;justify-content:center;height:36px;}
 .mu{color:var(--orange);}.md{color:var(--green);}.mf{color:var(--muted);}
 .mur{color:var(--red);animation:blink 0.8s infinite;}.mw{color:var(--orange);}.ms{color:var(--green);}
 .notice{font-size:11px;color:var(--muted);text-align:center;padding:8px;background:rgba(51,153,255,0.05);border-radius:8px;margin-bottom:14px;border:1px solid rgba(51,153,255,0.1);}
@@ -141,7 +141,7 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
     <div class="logo">&#9992;</div>
     <div class="htitle">
       <h1>INCHEON AIRPORT PARKING</h1>
-      <p>교통시설팀 · 내부 운영자용 <span style="color:rgba(255,255,255,0.3);font-size:9px;margin-left:4px;">v1.2.4</span></p>
+      <p>교통시설팀 · 내부 운영자용 <span style="color:rgba(255,255,255,0.3);font-size:9px;margin-left:4px;">v1.2.6</span></p>
     </div>
   </div>
   <div class="hr">
@@ -259,7 +259,7 @@ function getCardClass(r){
 function sparkline(floor){
   var hist=deltaHistory[floor];
   if(!hist||hist.length<2)return '';
-  var W=52,H=18,barW=2,gap=1;
+  var W=70,H=30,barW=4,gap=2;
   var absMax=0;
   hist.forEach(function(v){if(Math.abs(v)>absMax)absMax=Math.abs(v);});
   if(absMax===0)absMax=1;
@@ -283,7 +283,7 @@ function sparkline(floor){
   });
   // 0 기준선
   var zeroLine='<line x1="0" y1="'+midY+'" x2="'+W+'" y2="'+midY+'" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>';
-  return '<svg width="'+W+'" height="'+H+'" style="flex-shrink:0;margin-left:6px;vertical-align:middle">'+zeroLine+bars+'</svg>';
+  return '<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" style="display:block;margin:2px auto 0">'+zeroLine+bars+'</svg>';
 }
 // ── 게이지 ────────────────────────────────────────────────
 function gauge(r,c){
@@ -372,7 +372,7 @@ function renderMetrics(delta,eta,rate,avail,floor){
   var spark = sparkline(floor||'');
   return '<div class="cf">'+
     '<div class="mb"><div class="mbl">순증감 (5분)</div><div class="mbv '+dClass+'">'+dArrow+' '+dText+'</div></div>'+
-    '<div class="mb"><div class="mbl">증감 추이</div><div class="mb-spark">'+(spark||'<span style="color:var(--muted);font-size:10px">수집중</span>')+'</div></div>'+
+    '<div class="mb" style="padding:4px 4px"><div class="mbl">증감 추이</div><div class="mb-spark">'+(spark||'<span style="color:var(--muted);font-size:10px">수집중</span>')+'</div></div>'+
     '<div class="mb"><div class="mbl">만차까지 예상</div><div class="mbv '+eClass+'">'+eText+'</div></div>'+
   '</div>';
 }
