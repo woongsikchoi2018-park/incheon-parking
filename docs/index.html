@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>인천공항 주차 현황 v1.4.0</title>
+<title>인천공항 주차 현황 v2.0.1</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Oswald:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#0a1628;--blue:#1e5fbd;--sky:#3399ff;--sky-light:#66bbff;--gold:#f0b400;--green:#00cc77;--orange:#ff6633;--red:#ff2244;--white:#f0f6ff;--muted:#7a9cc0;--card-bg:rgba(15,32,68,0.85);--border:rgba(51,153,255,0.2);}
@@ -70,6 +70,8 @@ main{position:relative;z-index:1;padding:20px 32px;max-width:1400px;margin:0 aut
 .sc-total .sval{color:var(--green);}
 .ssub{font-size:10px;color:var(--muted);margin-bottom:8px;}
 .smrow{display:flex;gap:5px;flex-wrap:wrap;}
+.sdet{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;}
+.det-item{font-size:10px;background:rgba(255,255,255,0.06);border-radius:4px;padding:2px 6px;color:var(--sky-light);}
 .smbadge{font-family:'Share Tech Mono',monospace;font-size:10px;background:rgba(0,0,0,0.3);border-radius:6px;padding:3px 7px;white-space:nowrap;border:1px solid rgba(255,255,255,0.06);color:var(--muted);}
 .sm-up{color:var(--orange);border-color:rgba(255,102,51,0.3);}
 .sm-down{color:var(--green);border-color:rgba(0,204,119,0.3);}
@@ -142,7 +144,7 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
     <div class="logo">&#9992;</div>
     <div class="htitle">
       <h1>INCHEON AIRPORT PARKING</h1>
-      <p>교통시설팀 · 내부 운영자용 <span style="color:rgba(255,255,255,0.3);font-size:9px;margin-left:4px;">v1.4.0</span></p>
+      <p>교통시설팀 · 내부 운영자용 <span style="color:rgba(255,255,255,0.3);font-size:9px;margin-left:4px;">v2.0.1</span></p>
     </div>
   </div>
   <div class="hr">
@@ -171,6 +173,7 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
         <div class="slabel">전체 주차장</div>
         <div class="sval" id="totalRate">--%</div>
         <div class="ssub" id="totalSub">-- / -- 면</div>
+        <div class="sdet" id="totalDetail"></div>
         <div class="smrow">
           <span class="smbadge sm-flat" id="totalDelta">↔ 수집중</span>
           <span class="smbadge sm-flat" id="totalEta">⏱ 수집중</span>
@@ -181,6 +184,7 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
         <div class="slabel">제1여객터미널 · T1</div>
         <div class="sval" id="t1Rate">--%</div>
         <div class="ssub" id="t1Sub">-- / -- 면</div>
+        <div class="sdet" id="t1Detail"></div>
         <div class="smrow">
           <span class="smbadge sm-flat" id="t1Delta">↔ 수집중</span>
           <span class="smbadge sm-flat" id="t1Eta">⏱ 수집중</span>
@@ -191,6 +195,7 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
         <div class="slabel">제2여객터미널 · T2</div>
         <div class="sval" id="t2Rate">--%</div>
         <div class="ssub" id="t2Sub">-- / -- 면</div>
+        <div class="sdet" id="t2Detail"></div>
         <div class="smrow">
           <span class="smbadge sm-flat" id="t2Delta">↔ 수집중</span>
           <span class="smbadge sm-flat" id="t2Eta">⏱ 수집중</span>
@@ -238,19 +243,22 @@ function getGaugeColor(r){
   return '#00cc77';             // 초록색 (94% 이하)
 }
 function getSigClass(r){
-  if(r===null||r<95)return 'sg';  // 초록
-  if(r<=110)return 'so';           // 주황
-  return 'sr';                      // 빨강
+  if(r===null||r<95)return 'sg';
+  if(r<100)return 'so';
+  if(r<=110)return 'sr';
+  return 'sr';
 }
 function getBadge(r,a){
   if(!a||a<=0)return '<span class="sbadge b-cl">미운영</span>';
   if(r>=111)return '<span class="sbadge b-ov">초과</span>';
+  if(r>=100)return '<span class="sbadge b-full">만차</span>';
   if(r>=95)return '<span class="sbadge b-warn">혼잡</span>';
   return '<span class="sbadge b-ok">여유</span>';
 }
 function getCardClass(r){
   if(r===null)return 'pc cl';
   if(r>=111)return 'pc ov';
+  if(r>=100)return 'pc full';
   if(r>=95)return 'pc nf';
   return 'pc';
 }
@@ -356,18 +364,18 @@ function renderMetrics(delta,eta,rate,avail,floor){
   if(delta!==null){
     if(delta>0){dClass='mu';dArrow='↑';dText='+'+delta+'대/5분';}
     else if(delta<0){dClass='md';dArrow='↓';dText=delta+'대/5분';}
-    else{dClass='mf';dArrow='→';dText='0대/5분';}
+    else{dClass='mf';dArrow='=';dText='0대/5분';}
   }
   var eClass='mf',eText='수집 중 (5분 소요)';
   if(delta!==null){
-    if(rate>=110){eClass='mur';eText='초과중';}
-    else if(rate>=95){eClass='mur';eText='만차';}
-    else if(eta!==null){
+    if(rate>=111){eClass='mur';eText='초과중';}
+    else if(rate>=100&&delta>0){eClass='mur';eText='만차';}
+    else if(eta!==null&&delta>0){
       if(eta<=10){eClass='mur';eText='약 '+eta+'분 후 만차';}
       else if(eta<=30){eClass='mw';eText='약 '+eta+'분 후 만차';}
-      else{eClass='ms';eText='약 '+eta+'분 소요';}
+      else{eClass='ms';eText='약 '+eta+'분 후 만차';}
     } else if(delta===0){
-      eClass='ms';eText='현 수준 유지';
+      eClass='mf';eText='현재 유지';
     } else {
       eClass='ms';eText='감소 중';
     }
@@ -408,9 +416,24 @@ function buildCard(item,currDatetm){
 // ── 합산 ─────────────────────────────────────────────────
 function sumItems(list){
   var ta=0,tp=0;
-  list.forEach(function(i){var a=parseInt(i.parkingarea)||0,p=Math.max(0,parseInt(i.parking)||0);if(a>0){ta+=a;tp+=p;}});
+  var la=0,lp=0,da=0,dp=0,ra=0,rp=0;
+  list.forEach(function(i){
+    var a=parseInt(i.parkingarea)||0,p=Math.max(0,parseInt(i.parking)||0);
+    if(a>0){
+      ta+=a;tp+=p;
+      var f=i.floor||'';
+      if(/장기/i.test(f)){la+=a;lp+=p;}
+      else if(/단기/i.test(f)){da+=a;dp+=p;}
+      else if(/예약/i.test(f)){ra+=a;rp+=p;}
+    }
+  });
   var av=Math.max(0,ta-tp);
-  return{rate:ta?Math.round((tp/ta)*100):0,area:ta,parked:tp,avail:av};
+  return{
+    rate:ta?Math.round((tp/ta)*100):0,area:ta,parked:tp,avail:av,
+    longRate:la?Math.round((lp/la)*100):null,
+    shortRate:da?Math.round((dp/da)*100):null,
+    resRate:ra?Math.round((rp/ra)*100):null
+  };
 }
 
 // ── 요약카드 배지 업데이트 ────────────────────────────────
@@ -426,16 +449,17 @@ function updateSmBadge(idDelta,idEta,m,rate){
   // delta
   if(m.delta>0){dEl.textContent='↑ +'+m.delta+'대/5분';dEl.className='smbadge sm-up';}
   else if(m.delta<0){dEl.textContent='↓ '+m.delta+'대/5분';dEl.className='smbadge sm-down';}
-  else{dEl.textContent='→ 0대/5분';dEl.className='smbadge sm-flat';}
+  else{dEl.textContent='= 0대/5분';dEl.className='smbadge sm-flat';}
   // eta
   if(rate>=111){eEl.textContent='⚠️ 초과중';eEl.className='smbadge sm-urgent';}
+  else if(rate>=100){eEl.textContent='⏱ 만차';eEl.className='smbadge sm-urgent';}
   else if(rate>=95){eEl.textContent='⏱ 혼잡';eEl.className='smbadge sm-warn';}
   else if(m.eta!==null){
     if(m.eta<=10){eEl.textContent='⏱ 만차까지 약 '+m.eta+'분';eEl.className='smbadge sm-urgent';}
     else if(m.eta<=30){eEl.textContent='⏱ 만차까지 약 '+m.eta+'분';eEl.className='smbadge sm-warn';}
     else{eEl.textContent='⏱ 만차까지 약 '+m.eta+'분';eEl.className='smbadge sm-safe';}
   } else if(m.delta===0){
-    eEl.textContent='⏱ 현 수준 유지';eEl.className='smbadge sm-safe';
+    eEl.textContent='⏱ 현재 유지';eEl.className='smbadge sm-safe';
   } else {
     eEl.textContent='⏱ 감소 중';eEl.className='smbadge sm-safe';
   }
@@ -461,6 +485,20 @@ function renderAll(items,currDatetm,isManual){
   document.getElementById('t2Sub').textContent=s2.parked.toLocaleString()+'대 / '+s2.area.toLocaleString()+'면 ('+s2.avail.toLocaleString()+'면 여유)';
   document.getElementById('totalRate').textContent=st.rate+'%';
   document.getElementById('totalSub').textContent=st.parked.toLocaleString()+'대 / '+st.area.toLocaleString()+'면 ('+st.avail.toLocaleString()+'면 여유)';
+  // 세분화 주차율
+  function fmtCat(r){return r!==null?r+'%':'--';}
+  document.getElementById('t1Detail').innerHTML=
+    '<span class="det-item">장기 '+fmtCat(s1.longRate)+'</span>'+
+    '<span class="det-item">단기 '+fmtCat(s1.shortRate)+'</span>'+
+    '<span class="det-item">예약 '+fmtCat(s1.resRate)+'</span>';
+  document.getElementById('t2Detail').innerHTML=
+    '<span class="det-item">장기 '+fmtCat(s2.longRate)+'</span>'+
+    '<span class="det-item">단기 '+fmtCat(s2.shortRate)+'</span>'+
+    '<span class="det-item">예약 '+fmtCat(s2.resRate)+'</span>';
+  document.getElementById('totalDetail').innerHTML=
+    '<span class="det-item">장기 '+fmtCat(st.longRate)+'</span>'+
+    '<span class="det-item">단기 '+fmtCat(st.shortRate)+'</span>'+
+    '<span class="det-item">예약 '+fmtCat(st.resRate)+'</span>';
 
   // 요약카드 배지 — 수집 완료 시만 업데이트
   if(iMin!==null){
