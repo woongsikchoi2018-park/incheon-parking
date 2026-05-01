@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>인천공항 주차 현황 v1.3.6</title>
+<title>인천공항 주차 현황 v1.4.0</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Oswald:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#0a1628;--blue:#1e5fbd;--sky:#3399ff;--sky-light:#66bbff;--gold:#f0b400;--green:#00cc77;--orange:#ff6633;--red:#ff2244;--white:#f0f6ff;--muted:#7a9cc0;--card-bg:rgba(15,32,68,0.85);--border:rgba(51,153,255,0.2);}
@@ -142,7 +142,7 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
     <div class="logo">&#9992;</div>
     <div class="htitle">
       <h1>INCHEON AIRPORT PARKING</h1>
-      <p>교통시설팀 · 내부 운영자용 <span style="color:rgba(255,255,255,0.3);font-size:9px;margin-left:4px;">v1.3.6</span></p>
+      <p>교통시설팀 · 내부 운영자용 <span style="color:rgba(255,255,255,0.3);font-size:9px;margin-left:4px;">v1.4.0</span></p>
     </div>
   </div>
   <div class="hr">
@@ -431,9 +431,9 @@ function updateSmBadge(idDelta,idEta,m,rate){
   if(rate>=111){eEl.textContent='⚠️ 초과중';eEl.className='smbadge sm-urgent';}
   else if(rate>=95){eEl.textContent='⏱ 혼잡';eEl.className='smbadge sm-warn';}
   else if(m.eta!==null){
-    if(m.eta<=10){eEl.textContent='⏱ 약 '+m.eta+'분 후 만차';eEl.className='smbadge sm-urgent';}
-    else if(m.eta<=30){eEl.textContent='⏱ 약 '+m.eta+'분 후 만차';eEl.className='smbadge sm-warn';}
-    else{eEl.textContent='⏱ 약 '+m.eta+'분 소요';eEl.className='smbadge sm-safe';}
+    if(m.eta<=10){eEl.textContent='⏱ 만차까지 약 '+m.eta+'분';eEl.className='smbadge sm-urgent';}
+    else if(m.eta<=30){eEl.textContent='⏱ 만차까지 약 '+m.eta+'분';eEl.className='smbadge sm-warn';}
+    else{eEl.textContent='⏱ 만차까지 약 '+m.eta+'분';eEl.className='smbadge sm-safe';}
   } else if(m.delta===0){
     eEl.textContent='⏱ 현 수준 유지';eEl.className='smbadge sm-safe';
   } else {
@@ -562,15 +562,18 @@ function saveSession(items, datetm){
   try{
     sessionStorage.setItem('prev_items', JSON.stringify(items));
     sessionStorage.setItem('prev_datetm', datetm||'');
+    sessionStorage.setItem('delta_history', JSON.stringify(deltaHistory));
   }catch(e){}
 }
 function loadSession(){
   try{
     var items=JSON.parse(sessionStorage.getItem('prev_items')||'null');
     var datetm=sessionStorage.getItem('prev_datetm')||'';
+    var hist=JSON.parse(sessionStorage.getItem('delta_history')||'null');
     if(items&&items.length&&datetm){
       prevItems=items;
       prevDatetm=datetm;
+      if(hist) deltaHistory=hist; // 증감 추이 복원
       console.log('sessionStorage 복원: '+items.length+'개, 시각='+datetm);
       return true;
     }
