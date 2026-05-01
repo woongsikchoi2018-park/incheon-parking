@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>인천공항 주차 현황 v1.3.0</title>
+<title>인천공항 주차 현황 v1.3.1</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Oswald:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#0a1628;--blue:#1e5fbd;--sky:#3399ff;--sky-light:#66bbff;--gold:#f0b400;--green:#00cc77;--orange:#ff6633;--red:#ff2244;--white:#f0f6ff;--muted:#7a9cc0;--card-bg:rgba(15,32,68,0.85);--border:rgba(51,153,255,0.2);}
@@ -57,7 +57,7 @@ main{position:relative;z-index:1;padding:20px 32px;max-width:1400px;margin:0 aut
 /* 요약카드 */
 .srow{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
 .sc{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:15px 18px;position:relative;overflow:hidden;backdrop-filter:blur(10px);}
-.sc-total{background:rgba(20,45,85,0.95);border-color:rgba(0,204,119,0.3);}
+.sc-total{background:rgba(8,48,42,0.97);border-color:rgba(0,204,119,0.5);box-shadow:0 0 16px rgba(0,204,119,0.1);}
 .sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
 .sc-t1::before{background:linear-gradient(90deg,var(--sky),transparent);}
 .sc-t2::before{background:linear-gradient(90deg,var(--gold),transparent);}
@@ -97,8 +97,8 @@ main{position:relative;z-index:1;padding:20px 32px;max-width:1400px;margin:0 aut
 .ch{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
 .cfl{font-size:12px;font-weight:500;color:var(--white);line-height:1.4;}
 .ttag{display:inline-block;font-family:'Oswald',sans-serif;font-size:9px;letter-spacing:1.5px;padding:2px 5px;border-radius:4px;margin-right:4px;vertical-align:middle;}
-.t1t{background:rgba(51,153,255,0.2);color:var(--sky);}
-.t2t{background:rgba(240,180,0,0.2);color:var(--gold);}
+.t1t{background:rgba(255,255,255,0.9);color:#1e5fbd;font-weight:700;}
+.t2t{background:rgba(255,255,255,0.9);color:#b38600;font-weight:700;}
 .sig{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:2px;}
 .sg{background:var(--green);box-shadow:0 0 7px var(--green);}
 .sw{background:#fff;box-shadow:0 0 7px rgba(255,255,255,0.8);}
@@ -142,7 +142,7 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
     <div class="logo">&#9992;</div>
     <div class="htitle">
       <h1>INCHEON AIRPORT PARKING</h1>
-      <p>교통시설팀 · 내부 운영자용 <span style="color:rgba(255,255,255,0.3);font-size:9px;margin-left:4px;">v1.3.0</span></p>
+      <p>교통시설팀 · 내부 운영자용 <span style="color:rgba(255,255,255,0.3);font-size:9px;margin-left:4px;">v1.3.1</span></p>
     </div>
   </div>
   <div class="hr">
