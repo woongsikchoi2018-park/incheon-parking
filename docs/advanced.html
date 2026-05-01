@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>인천공항 주차 현황 v1.2.6</title>
+<title>인천공항 주차 현황 v1.2.8</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Oswald:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#0a1628;--blue:#1e5fbd;--sky:#3399ff;--sky-light:#66bbff;--gold:#f0b400;--green:#00cc77;--orange:#ff6633;--red:#ff2244;--white:#f0f6ff;--muted:#7a9cc0;--card-bg:rgba(15,32,68,0.85);--border:rgba(51,153,255,0.2);}
@@ -141,7 +141,7 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
     <div class="logo">&#9992;</div>
     <div class="htitle">
       <h1>INCHEON AIRPORT PARKING</h1>
-      <p>교통시설팀 · 내부 운영자용 <span style="color:rgba(255,255,255,0.3);font-size:9px;margin-left:4px;">v1.2.6</span></p>
+      <p>교통시설팀 · 내부 운영자용 <span style="color:rgba(255,255,255,0.3);font-size:9px;margin-left:4px;">v1.2.8</span></p>
     </div>
   </div>
   <div class="hr">
@@ -442,11 +442,14 @@ function updateSmBadge(idDelta,idEta,m,rate){
 function renderAll(items,currDatetm,isManual){
   var t1=items.filter(function(i){return getTerm(i.floor)==='T1';});
   var t2=items.filter(function(i){return getTerm(i.floor)==='T2';});
-  // 수동 새로고침이면 카드(세부정보) 재렌더링 생략 — 기존 화면 유지
-  if(!isManual){
+  // 증감정보 유효 여부로 렌더링 결정
+  var iMin=getIntervalMin(currDatetm);
+  if(iMin!==null){
+    // 수집 완료 — 최신값으로 업데이트
     document.getElementById('t1Grid').innerHTML=t1.length?t1.map(function(i){return buildCard(i,currDatetm);}).join(''):'<p style="color:var(--muted);padding:12px">데이터 없음</p>';
     document.getElementById('t2Grid').innerHTML=t2.length?t2.map(function(i){return buildCard(i,currDatetm);}).join(''):'<p style="color:var(--muted);padding:12px">데이터 없음</p>';
   }
+  // 수집 전이면 기존 화면 유지 (iMin===null)
 
   // 요약카드
   var s1=sumItems(t1),s2=sumItems(t2),st=sumItems(items);
@@ -457,13 +460,15 @@ function renderAll(items,currDatetm,isManual){
   document.getElementById('totalRate').textContent=st.rate+'%';
   document.getElementById('totalSub').textContent=st.parked.toLocaleString()+'대 / '+st.area.toLocaleString()+'면 ('+st.avail.toLocaleString()+'면 여유)';
 
-  // 요약카드 배지
-  var m1=calcTermMetrics(t1,currDatetm);
-  var m2=calcTermMetrics(t2,currDatetm);
-  var mt=calcTermMetrics(items,currDatetm);
-  updateSmBadge('t1Delta','t1Eta',m1,s1.rate);
-  updateSmBadge('t2Delta','t2Eta',m2,s2.rate);
-  updateSmBadge('totalDelta','totalEta',mt,st.rate);
+  // 요약카드 배지 — 수집 완료 시만 업데이트
+  if(iMin!==null){
+    var m1=calcTermMetrics(t1,currDatetm);
+    var m2=calcTermMetrics(t2,currDatetm);
+    var mt=calcTermMetrics(items,currDatetm);
+    updateSmBadge('t1Delta','t1Eta',m1,s1.rate);
+    updateSmBadge('t2Delta','t2Eta',m2,s2.rate);
+    updateSmBadge('totalDelta','totalEta',mt,st.rate);
+  }
 
   // 탭 opacity
   document.querySelector('.sc-t1').style.opacity=(currFilter==='T2')?'0.3':'1';
@@ -597,8 +602,8 @@ async function loadData(isManual){
     document.getElementById('loadingState').classList.add('hidden');
     document.getElementById('mainContent').classList.remove('hidden');
 
-    // prevItems 업데이트 — 자동갱신 시에만 (수동 새로고침은 유지)
-    if(!isManual){
+    // prevItems 업데이트 — 수집 완료 시에만
+    if(getIntervalMin(currDatetm)!==null){
       prevItems=items;
       prevDatetm=currDatetm;
     }
