@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>인천공항 주차 현황 v1.2.8</title>
+<title>인천공항 주차 현황 v1.3.0</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Oswald:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#0a1628;--blue:#1e5fbd;--sky:#3399ff;--sky-light:#66bbff;--gold:#f0b400;--green:#00cc77;--orange:#ff6633;--red:#ff2244;--white:#f0f6ff;--muted:#7a9cc0;--card-bg:rgba(15,32,68,0.85);--border:rgba(51,153,255,0.2);}
@@ -57,6 +57,7 @@ main{position:relative;z-index:1;padding:20px 32px;max-width:1400px;margin:0 aut
 /* 요약카드 */
 .srow{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
 .sc{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:15px 18px;position:relative;overflow:hidden;backdrop-filter:blur(10px);}
+.sc-total{background:rgba(20,45,85,0.95);border-color:rgba(0,204,119,0.3);}
 .sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
 .sc-t1::before{background:linear-gradient(90deg,var(--sky),transparent);}
 .sc-t2::before{background:linear-gradient(90deg,var(--gold),transparent);}
@@ -141,7 +142,7 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
     <div class="logo">&#9992;</div>
     <div class="htitle">
       <h1>INCHEON AIRPORT PARKING</h1>
-      <p>교통시설팀 · 내부 운영자용 <span style="color:rgba(255,255,255,0.3);font-size:9px;margin-left:4px;">v1.2.8</span></p>
+      <p>교통시설팀 · 내부 운영자용 <span style="color:rgba(255,255,255,0.3);font-size:9px;margin-left:4px;">v1.3.0</span></p>
     </div>
   </div>
   <div class="hr">
@@ -165,6 +166,16 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
   </div>
   <div id="mainContent" class="hidden">
     <div class="srow">
+      <div class="sc sc-total">
+        <div class="sico">📊</div>
+        <div class="slabel">전체 주차장</div>
+        <div class="sval" id="totalRate">--%</div>
+        <div class="ssub" id="totalSub">-- / -- 면</div>
+        <div class="smrow">
+          <span class="smbadge sm-flat" id="totalDelta">↔ 수집중</span>
+          <span class="smbadge sm-flat" id="totalEta">⏱ 수집중</span>
+        </div>
+      </div>
       <div class="sc sc-t1">
         <div class="sico">🅿</div>
         <div class="slabel">제1여객터미널 · T1</div>
@@ -183,16 +194,6 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
         <div class="smrow">
           <span class="smbadge sm-flat" id="t2Delta">↔ 수집중</span>
           <span class="smbadge sm-flat" id="t2Eta">⏱ 수집중</span>
-        </div>
-      </div>
-      <div class="sc sc-total">
-        <div class="sico">📊</div>
-        <div class="slabel">전체 주차장</div>
-        <div class="sval" id="totalRate">--%</div>
-        <div class="ssub" id="totalSub">-- / -- 면</div>
-        <div class="smrow">
-          <span class="smbadge sm-flat" id="totalDelta">↔ 수집중</span>
-          <span class="smbadge sm-flat" id="totalEta">⏱ 수집중</span>
         </div>
       </div>
     </div>
@@ -444,12 +445,11 @@ function renderAll(items,currDatetm,isManual){
   var t2=items.filter(function(i){return getTerm(i.floor)==='T2';});
   // 증감정보 유효 여부로 렌더링 결정
   var iMin=getIntervalMin(currDatetm);
-  if(iMin!==null){
-    // 수집 완료 — 최신값으로 업데이트
+  // 첫 로드이거나 수집 완료 시 카드 업데이트
+  if(callCount<=1||iMin!==null){
     document.getElementById('t1Grid').innerHTML=t1.length?t1.map(function(i){return buildCard(i,currDatetm);}).join(''):'<p style="color:var(--muted);padding:12px">데이터 없음</p>';
     document.getElementById('t2Grid').innerHTML=t2.length?t2.map(function(i){return buildCard(i,currDatetm);}).join(''):'<p style="color:var(--muted);padding:12px">데이터 없음</p>';
   }
-  // 수집 전이면 기존 화면 유지 (iMin===null)
 
   // 요약카드
   var s1=sumItems(t1),s2=sumItems(t2),st=sumItems(items);
@@ -602,8 +602,8 @@ async function loadData(isManual){
     document.getElementById('loadingState').classList.add('hidden');
     document.getElementById('mainContent').classList.remove('hidden');
 
-    // prevItems 업데이트 — 수집 완료 시에만
-    if(getIntervalMin(currDatetm)!==null){
+    // prevItems 업데이트 — 수집 완료 시 또는 첫 로드
+    if(callCount<=1||getIntervalMin(currDatetm)!==null){
       prevItems=items;
       prevDatetm=currDatetm;
     }
