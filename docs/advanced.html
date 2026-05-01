@@ -254,33 +254,35 @@ function getCardClass(r){
 }
 
 
-// ── 스파크라인 SVG ────────────────────────────────────────
+// ── 미니 막대그래프 ───────────────────────────────────────
 function sparkline(floor){
   var hist=deltaHistory[floor];
   if(!hist||hist.length<2)return '';
-  var W=80,H=24,pad=2;
-  var mn=Math.min.apply(null,hist),mx=Math.max.apply(null,hist);
-  if(mn===mx){mn=mn-1;mx=mx+1;}
-  var range=mx-mn||1;
-  var pts=hist.map(function(v,i){
-    var x=pad+(i/(hist.length-1))*(W-pad*2);
-    var y=H-pad-((v-mn)/range)*(H-pad*2);
-    return x.toFixed(1)+','+y.toFixed(1);
+  var W=60,H=18,barW=3,gap=1;
+  var absMax=0;
+  hist.forEach(function(v){if(Math.abs(v)>absMax)absMax=Math.abs(v);});
+  if(absMax===0)absMax=1;
+  var bars='';
+  var total=hist.length;
+  // 최대 10개만 표시
+  var show=hist.slice(-10);
+  var bw=barW,bg=gap;
+  var totalW=show.length*(bw+bg)-bg;
+  var startX=(W-totalW)/2;
+  var midY=H/2;
+  show.forEach(function(v,i){
+    var h=Math.max(1,Math.round((Math.abs(v)/absMax)*(H/2-1)));
+    var color=v>0?'#ff6633':v<0?'#00cc77':'#7a9cc0';
+    var x=startX+i*(bw+bg);
+    if(v>=0){
+      bars+='<rect x="'+x.toFixed(1)+'" y="'+(midY-h).toFixed(1)+'" width="'+bw+'" height="'+h+'" rx="0.5" fill="'+color+'" opacity="0.85"/>';
+    } else {
+      bars+='<rect x="'+x.toFixed(1)+'" y="'+midY.toFixed(1)+'" width="'+bw+'" height="'+h+'" rx="0.5" fill="'+color+'" opacity="0.85"/>';
+    }
   });
-  // 색상: 마지막값 기준
-  var last=hist[hist.length-1];
-  var color=last>0?'#ff6633':last<0?'#00cc77':'#7a9cc0';
   // 0 기준선
-  var zeroY=H-pad-((0-mn)/range)*(H-pad*2);
-  var zeroLine='';
-  if(mn<0&&mx>0){
-    zeroLine='<line x1="'+pad+'" y1="'+zeroY.toFixed(1)+'" x2="'+(W-pad)+'" y2="'+zeroY.toFixed(1)+'" stroke="rgba(255,255,255,0.15)" stroke-width="0.5"/>';
-  }
-  return '<svg width="'+W+'" height="'+H+'" style="display:block;margin-top:4px">'+
-    zeroLine+
-    '<polyline points="'+pts.join(' ')+'" fill="none" stroke="'+color+'" stroke-width="1.5" stroke-linejoin="round"/>'+
-    '<circle cx="'+pts[pts.length-1].split(',')[0]+'" cy="'+pts[pts.length-1].split(',')[1]+'" r="2" fill="'+color+'"/>'+
-  '</svg>';
+  var zeroLine='<line x1="0" y1="'+midY+'" x2="'+W+'" y2="'+midY+'" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>';
+  return '<svg width="'+W+'" height="'+H+'" style="flex-shrink:0;margin-left:6px;vertical-align:middle">'+zeroLine+bars+'</svg>';
 }
 // ── 게이지 ────────────────────────────────────────────────
 function gauge(r,c){
@@ -368,7 +370,11 @@ function renderMetrics(delta,eta,rate,avail,floor){
   }
   var spark = sparkline(floor||'');
   return '<div class="cf">'+
-    '<div class="mb"><div class="mbl">순증감 (5분)</div><div class="mbv '+dClass+'">'+dArrow+' '+dText+'</div>'+spark+'</div>'+
+    '<div class="mb"><div class="mbl">순증감 (5분)</div>'+
+      '<div style="display:flex;align-items:center;gap:0">'+
+        '<div class="mbv '+dClass+'">'+dArrow+' '+dText+'</div>'+spark+
+      '</div>'+
+    '</div>'+
     '<div class="mb"><div class="mbl">만차까지 예상</div><div class="mbv '+eClass+'">'+eText+'</div></div>'+
   '</div>';
 }
