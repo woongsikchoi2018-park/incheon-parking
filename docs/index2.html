@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>인천공항 주차 현황</title>
+<title>인천공항 주차 현황 v1.4.0</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Oswald:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#0a1628;--blue:#1e5fbd;--sky:#3399ff;--sky-light:#66bbff;--gold:#f0b400;--green:#00cc77;--orange:#ff6633;--red:#ff2244;--white:#f0f6ff;--muted:#7a9cc0;--card-bg:rgba(15,32,68,0.85);--border:rgba(51,153,255,0.2);}
@@ -57,12 +57,13 @@ main{position:relative;z-index:1;padding:20px 32px;max-width:1400px;margin:0 aut
 /* 요약카드 */
 .srow{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
 .sc{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:15px 18px;position:relative;overflow:hidden;backdrop-filter:blur(10px);}
+.sc-total{background:rgba(8,48,42,0.97);border-color:rgba(0,204,119,0.5);box-shadow:0 0 16px rgba(0,204,119,0.1);}
 .sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
 .sc-t1::before{background:linear-gradient(90deg,var(--sky),transparent);}
 .sc-t2::before{background:linear-gradient(90deg,var(--gold),transparent);}
 .sc-total::before{background:linear-gradient(90deg,var(--green),transparent);}
 .sico{position:absolute;top:12px;right:12px;font-size:20px;opacity:0.1;}
-.slabel{font-size:10px;letter-spacing:1.5px;color:var(--muted);margin-bottom:5px;}
+.slabel{font-size:11px;letter-spacing:1px;color:#ffffff;font-weight:700;margin-bottom:5px;}
 .sval{font-family:'Oswald',sans-serif;font-size:30px;font-weight:600;line-height:1;margin-bottom:3px;}
 .sc-t1 .sval{color:var(--sky-light);}
 .sc-t2 .sval{color:var(--gold);}
@@ -95,9 +96,9 @@ main{position:relative;z-index:1;padding:20px 32px;max-width:1400px;margin:0 aut
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:0.55;}}
 .ch{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
 .cfl{font-size:12px;font-weight:500;color:var(--white);line-height:1.4;}
-.ttag{display:inline-block;font-family:'Oswald',sans-serif;font-size:9px;letter-spacing:1.5px;padding:2px 5px;border-radius:4px;margin-right:4px;vertical-align:middle;}
-.t1t{background:rgba(51,153,255,0.2);color:var(--sky);}
-.t2t{background:rgba(240,180,0,0.2);color:var(--gold);}
+.ttag{display:inline-block;font-family:'Oswald',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;padding:2px 7px;border-radius:5px;margin-right:5px;vertical-align:middle;}
+.t1t{background:#1e5fbd;color:#ffffff;}
+.t2t{background:#b38600;color:#ffffff;}
 .sig{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:2px;}
 .sg{background:var(--green);box-shadow:0 0 7px var(--green);}
 .sw{background:#fff;box-shadow:0 0 7px rgba(255,255,255,0.8);}
@@ -123,10 +124,11 @@ main{position:relative;z-index:1;padding:20px 32px;max-width:1400px;margin:0 aut
 .b-full{background:rgba(255,34,68,0.12);color:var(--red);border:1px solid rgba(255,34,68,0.3);}
 .b-ov{background:rgba(255,34,68,0.3);color:#fff;border:1px solid var(--red);animation:blink 0.8s infinite;}
 .b-cl{background:rgba(120,130,150,0.1);color:var(--muted);border:1px solid rgba(120,130,150,0.2);}
-.cf{border-top:1px solid rgba(255,255,255,0.06);margin-top:9px;padding-top:9px;display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.cf{border-top:1px solid rgba(255,255,255,0.06);margin-top:9px;padding-top:9px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
 .mb{background:rgba(0,0,0,0.25);border-radius:8px;padding:6px 8px;text-align:center;}
 .mbl{font-size:9px;color:var(--muted);letter-spacing:0.5px;margin-bottom:3px;}
 .mbv{font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;line-height:1.2;}
+.mb-spark{display:flex;align-items:center;justify-content:center;height:36px;}
 .mu{color:var(--orange);}.md{color:var(--green);}.mf{color:var(--muted);}
 .mur{color:var(--red);animation:blink 0.8s infinite;}.mw{color:var(--orange);}.ms{color:var(--green);}
 .notice{font-size:11px;color:var(--muted);text-align:center;padding:8px;background:rgba(51,153,255,0.05);border-radius:8px;margin-bottom:14px;border:1px solid rgba(51,153,255,0.1);}
@@ -140,7 +142,7 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
     <div class="logo">&#9992;</div>
     <div class="htitle">
       <h1>INCHEON AIRPORT PARKING</h1>
-      <p>교통시설팀 · 내부 운영자용</p>
+      <p>교통시설팀 · 내부 운영자용 <span style="color:rgba(255,255,255,0.3);font-size:9px;margin-left:4px;">v1.4.0</span></p>
     </div>
   </div>
   <div class="hr">
@@ -164,6 +166,16 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
   </div>
   <div id="mainContent" class="hidden">
     <div class="srow">
+      <div class="sc sc-total">
+        <div class="sico">📊</div>
+        <div class="slabel">전체 주차장</div>
+        <div class="sval" id="totalRate">--%</div>
+        <div class="ssub" id="totalSub">-- / -- 면</div>
+        <div class="smrow">
+          <span class="smbadge sm-flat" id="totalDelta">↔ 수집중</span>
+          <span class="smbadge sm-flat" id="totalEta">⏱ 수집중</span>
+        </div>
+      </div>
       <div class="sc sc-t1">
         <div class="sico">🅿</div>
         <div class="slabel">제1여객터미널 · T1</div>
@@ -182,16 +194,6 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
         <div class="smrow">
           <span class="smbadge sm-flat" id="t2Delta">↔ 수집중</span>
           <span class="smbadge sm-flat" id="t2Eta">⏱ 수집중</span>
-        </div>
-      </div>
-      <div class="sc sc-total">
-        <div class="sico">📊</div>
-        <div class="slabel">전체 주차장</div>
-        <div class="sval" id="totalRate">--%</div>
-        <div class="ssub" id="totalSub">-- / -- 면</div>
-        <div class="smrow">
-          <span class="smbadge sm-flat" id="totalDelta">↔ 수집중</span>
-          <span class="smbadge sm-flat" id="totalEta">⏱ 수집중</span>
         </div>
       </div>
     </div>
@@ -217,6 +219,7 @@ var LOG_MAX=500;
 var prevItems=null, prevDatetm=null;
 var currFilter='all';
 var callCount=0;
+var deltaHistory={};  // floor별 최근 15회 delta5 이력
 
 // ── 유틸 ──────────────────────────────────────────────────
 function getTerm(f){return /^T1/i.test(f)?'T1':/^T2/i.test(f)?'T2':'OTHER';}
@@ -230,28 +233,59 @@ function parseDt(s){
 // ── 색상/등급 ─────────────────────────────────────────────
 function getGaugeColor(r){
   if(r===null)return '#4a5568';
-  if(r>=111)return '#ff2244';  // 빨간색
-  if(r>=90)return '#ff6633';   // 주황색
-  return '#00cc77';             // 초록색 (89% 이하)
+  if(r>=111)return '#ff2244';  // 빨간색 (111%+)
+  if(r>=95)return '#ff6633';   // 주황색 (95~110%)
+  return '#00cc77';             // 초록색 (94% 이하)
 }
 function getSigClass(r){
-  if(r===null||r<=89)return 'sg';  // 파란색(녹색 유지)
-  if(r<=110)return 'so';           // 주황색
-  return 'sr';                      // 빨간색
+  if(r===null||r<95)return 'sg';  // 초록
+  if(r<=110)return 'so';           // 주황
+  return 'sr';                      // 빨강
 }
 function getBadge(r,a){
   if(!a||a<=0)return '<span class="sbadge b-cl">미운영</span>';
-  if(r>=111)return '<span class="sbadge b-ov">초과</span>';    // 빨간색
-  if(r>=90)return '<span class="sbadge b-warn">혼잡</span>';   // 주황색
-  return '<span class="sbadge b-ok">여유</span>';               // 파란색
+  if(r>=111)return '<span class="sbadge b-ov">초과</span>';
+  if(r>=95)return '<span class="sbadge b-warn">혼잡</span>';
+  return '<span class="sbadge b-ok">여유</span>';
 }
 function getCardClass(r){
   if(r===null)return 'pc cl';
-  if(r>=111)return 'pc ov';   // 빨간색
-  if(r>=90)return 'pc nf';    // 주황색
-  return 'pc';                  // 파란색
+  if(r>=111)return 'pc ov';
+  if(r>=95)return 'pc nf';
+  return 'pc';
 }
 
+
+// ── 미니 막대그래프 ───────────────────────────────────────
+function sparkline(floor){
+  var hist=deltaHistory[floor];
+  if(!hist||hist.length<2)return '';
+  var W=70,H=30,barW=4,gap=2;
+  var absMax=0;
+  hist.forEach(function(v){if(Math.abs(v)>absMax)absMax=Math.abs(v);});
+  if(absMax===0)absMax=1;
+  var bars='';
+  var total=hist.length;
+  // 최대 10개만 표시
+  var show=hist.slice(-10);
+  var bw=barW,bg=gap;
+  var totalW=show.length*(bw+bg)-bg;
+  var startX=(W-totalW)/2;
+  var midY=H/2;
+  show.forEach(function(v,i){
+    var h=Math.max(1,Math.round((Math.abs(v)/absMax)*(H/2-1)));
+    var color=v>0?'#ff6633':v<0?'#00cc77':'#7a9cc0';
+    var x=startX+i*(bw+bg);
+    if(v>=0){
+      bars+='<rect x="'+x.toFixed(1)+'" y="'+(midY-h).toFixed(1)+'" width="'+bw+'" height="'+h+'" rx="0.5" fill="'+color+'" opacity="0.85"/>';
+    } else {
+      bars+='<rect x="'+x.toFixed(1)+'" y="'+midY.toFixed(1)+'" width="'+bw+'" height="'+h+'" rx="0.5" fill="'+color+'" opacity="0.85"/>';
+    }
+  });
+  // 0 기준선
+  var zeroLine='<line x1="0" y1="'+midY+'" x2="'+W+'" y2="'+midY+'" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>';
+  return '<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" style="display:block;margin:2px auto 0">'+zeroLine+bars+'</svg>';
+}
 // ── 게이지 ────────────────────────────────────────────────
 function gauge(r,c){
   var rad=25,circ=2*Math.PI*rad,off=circ*(1-Math.min(r||0,100)/100);
@@ -267,7 +301,9 @@ function getIntervalMin(currDatetm){
   var pd=parseDt(prevDatetm), cd=parseDt(currDatetm);
   if(!pd||!cd)return null;
   var diff=Math.round((cd-pd)/60000);
-  if(diff<=0||diff>60)return null; // 역전 또는 60분 초과 → 수집중
+  if(diff>60)return null; // 60분 초과 → 수집중
+  // diff가 0이면 parking.json or sessionStorage 복원 직후 — 1분으로 간주
+  if(diff<=0)diff=1;
   return diff;
 }
 
@@ -284,6 +320,12 @@ function calcMetrics(floor,currP,currA,currDatetm){
   var delta5=Math.round(delta*(5/iMin));
   var avail=Math.max(0,currA-currP);
   var eta=delta5>0&&avail>0?Math.round(avail/(delta5/5)):null;
+  // 이력 저장 (최대 15개)
+  if(delta5!==null){
+    if(!deltaHistory[floor])deltaHistory[floor]=[];
+    deltaHistory[floor].push(delta5);
+    if(deltaHistory[floor].length>15)deltaHistory[floor].shift();
+  }
   return{delta:delta5,eta:eta};
 }
 
@@ -309,7 +351,7 @@ function calcTermMetrics(list,currDatetm){
 }
 
 // ── 증감/만차예상 텍스트 ──────────────────────────────────
-function renderMetrics(delta,eta,rate,avail){
+function renderMetrics(delta,eta,rate,avail,floor){
   var dClass='mf',dText='수집 중 (5분 소요)',dArrow='↔';
   if(delta!==null){
     if(delta>0){dClass='mu';dArrow='↑';dText='+'+delta+'대/5분';}
@@ -330,8 +372,10 @@ function renderMetrics(delta,eta,rate,avail){
       eClass='ms';eText='감소 중';
     }
   }
+  var spark = sparkline(floor||'');
   return '<div class="cf">'+
     '<div class="mb"><div class="mbl">순증감 (5분)</div><div class="mbv '+dClass+'">'+dArrow+' '+dText+'</div></div>'+
+    '<div class="mb" style="padding:4px 4px"><div class="mbl">증감 추이</div><div class="mb-spark">'+(spark||'<span style="color:var(--muted);font-size:10px">수집중</span>')+'</div></div>'+
     '<div class="mb"><div class="mbl">만차까지 예상</div><div class="mbv '+eClass+'">'+eText+'</div></div>'+
   '</div>';
 }
@@ -357,7 +401,7 @@ function buildCard(item,currDatetm){
     '<div class="sr2"><span class="sl">여유 면수</span><span class="sv sva">'+(a?av.toLocaleString():'--')+'</span></div>'+
     getBadge(r,a)+
     '</div></div>'+
-    renderMetrics(m.delta,m.eta,r||0,av)+
+    renderMetrics(m.delta,m.eta,r||0,av,floor)+
   '</div>';
 }
 
@@ -385,11 +429,11 @@ function updateSmBadge(idDelta,idEta,m,rate){
   else{dEl.textContent='→ 0대/5분';dEl.className='smbadge sm-flat';}
   // eta
   if(rate>=111){eEl.textContent='⚠️ 초과중';eEl.className='smbadge sm-urgent';}
-  else if(rate>=90){eEl.textContent='⏱ 혼잡';eEl.className='smbadge sm-warn';}
+  else if(rate>=95){eEl.textContent='⏱ 혼잡';eEl.className='smbadge sm-warn';}
   else if(m.eta!==null){
-    if(m.eta<=10){eEl.textContent='⏱ 약 '+m.eta+'분 후 만차';eEl.className='smbadge sm-urgent';}
-    else if(m.eta<=30){eEl.textContent='⏱ 약 '+m.eta+'분 후 만차';eEl.className='smbadge sm-warn';}
-    else{eEl.textContent='⏱ 약 '+m.eta+'분 소요';eEl.className='smbadge sm-safe';}
+    if(m.eta<=10){eEl.textContent='⏱ 만차까지 약 '+m.eta+'분';eEl.className='smbadge sm-urgent';}
+    else if(m.eta<=30){eEl.textContent='⏱ 만차까지 약 '+m.eta+'분';eEl.className='smbadge sm-warn';}
+    else{eEl.textContent='⏱ 만차까지 약 '+m.eta+'분';eEl.className='smbadge sm-safe';}
   } else if(m.delta===0){
     eEl.textContent='⏱ 현 수준 유지';eEl.className='smbadge sm-safe';
   } else {
@@ -401,8 +445,13 @@ function updateSmBadge(idDelta,idEta,m,rate){
 function renderAll(items,currDatetm,isManual){
   var t1=items.filter(function(i){return getTerm(i.floor)==='T1';});
   var t2=items.filter(function(i){return getTerm(i.floor)==='T2';});
-  document.getElementById('t1Grid').innerHTML=t1.length?t1.map(function(i){return buildCard(i,currDatetm);}).join(''):'<p style="color:var(--muted);padding:12px">데이터 없음</p>';
-  document.getElementById('t2Grid').innerHTML=t2.length?t2.map(function(i){return buildCard(i,currDatetm);}).join(''):'<p style="color:var(--muted);padding:12px">데이터 없음</p>';
+  // 증감정보 유효 여부로 렌더링 결정
+  var iMin=getIntervalMin(currDatetm);
+  // 첫 로드이거나 수집 완료 시 카드 업데이트
+  if(callCount<=1||iMin!==null){
+    document.getElementById('t1Grid').innerHTML=t1.length?t1.map(function(i){return buildCard(i,currDatetm);}).join(''):'<p style="color:var(--muted);padding:12px">데이터 없음</p>';
+    document.getElementById('t2Grid').innerHTML=t2.length?t2.map(function(i){return buildCard(i,currDatetm);}).join(''):'<p style="color:var(--muted);padding:12px">데이터 없음</p>';
+  }
 
   // 요약카드
   var s1=sumItems(t1),s2=sumItems(t2),st=sumItems(items);
@@ -413,13 +462,15 @@ function renderAll(items,currDatetm,isManual){
   document.getElementById('totalRate').textContent=st.rate+'%';
   document.getElementById('totalSub').textContent=st.parked.toLocaleString()+'대 / '+st.area.toLocaleString()+'면 ('+st.avail.toLocaleString()+'면 여유)';
 
-  // 요약카드 배지
-  var m1=calcTermMetrics(t1,currDatetm);
-  var m2=calcTermMetrics(t2,currDatetm);
-  var mt=calcTermMetrics(items,currDatetm);
-  updateSmBadge('t1Delta','t1Eta',m1,s1.rate);
-  updateSmBadge('t2Delta','t2Eta',m2,s2.rate);
-  updateSmBadge('totalDelta','totalEta',mt,st.rate);
+  // 요약카드 배지 — 수집 완료 시만 업데이트
+  if(iMin!==null){
+    var m1=calcTermMetrics(t1,currDatetm);
+    var m2=calcTermMetrics(t2,currDatetm);
+    var mt=calcTermMetrics(items,currDatetm);
+    updateSmBadge('t1Delta','t1Eta',m1,s1.rate);
+    updateSmBadge('t2Delta','t2Eta',m2,s2.rate);
+    updateSmBadge('totalDelta','totalEta',mt,st.rate);
+  }
 
   // 탭 opacity
   document.querySelector('.sc-t1').style.opacity=(currFilter==='T2')?'0.3':'1';
@@ -434,7 +485,7 @@ function renderAll(items,currDatetm,isManual){
   // 증감 정보 유효 여부에 따라 새로고침 버튼 상태 변경
   var iMin=getIntervalMin(currDatetm);
   var rbtn=document.getElementById('refreshBtn');
-  if(rbtn&&!rbtn._manualDisabled){
+  if(rbtn){
     if(iMin!==null){
       rbtn.disabled=false;
       rbtn.innerHTML='&#8635; 새로고침';
@@ -442,7 +493,7 @@ function renderAll(items,currDatetm,isManual){
     } else {
       rbtn.disabled=true;
       rbtn.innerHTML='⏳ 수집 중...';
-      rbtn.title='증감 정보 수집 완료 후 활성화 (약 1분)';
+      rbtn.title='약 1분 후 활성화됩니다';
     }
   }
 }
@@ -506,6 +557,30 @@ function getLogCount(){
   try{return JSON.parse(localStorage.getItem(LOG_KEY)||'[]').length;}catch(e){return 0;}
 }
 
+// ── sessionStorage — 페이지 새로고침 시 이전 데이터 복원 ──
+function saveSession(items, datetm){
+  try{
+    sessionStorage.setItem('prev_items', JSON.stringify(items));
+    sessionStorage.setItem('prev_datetm', datetm||'');
+    sessionStorage.setItem('delta_history', JSON.stringify(deltaHistory));
+  }catch(e){}
+}
+function loadSession(){
+  try{
+    var items=JSON.parse(sessionStorage.getItem('prev_items')||'null');
+    var datetm=sessionStorage.getItem('prev_datetm')||'';
+    var hist=JSON.parse(sessionStorage.getItem('delta_history')||'null');
+    if(items&&items.length&&datetm){
+      prevItems=items;
+      prevDatetm=datetm;
+      if(hist) deltaHistory=hist; // 증감 추이 복원
+      console.log('sessionStorage 복원: '+items.length+'개, 시각='+datetm);
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+
 // ── parking.json 캐시 로드 ────────────────────────────────
 async function loadPrevFromCache(){
   try{
@@ -529,7 +604,8 @@ async function loadPrevFromCache(){
 // ── 메인 데이터 로드 ──────────────────────────────────────
 async function loadData(isManual){
   var btn=document.getElementById('refreshBtn');
-  if(btn){btn.disabled=true;btn._manualDisabled=true;btn.innerHTML='&#8635; 처리중...';}
+  // 새로고침 클릭 시 버튼 즉시 비활성화
+  if(btn&&isManual){btn.disabled=true;btn.innerHTML='⏳ 갱신중...';}
   // 첫 로드시만 로딩화면
   if(callCount===0){
     document.getElementById('loadingState').classList.remove('hidden');
@@ -553,9 +629,13 @@ async function loadData(isManual){
     document.getElementById('loadingState').classList.add('hidden');
     document.getElementById('mainContent').classList.remove('hidden');
 
-    // prevItems 업데이트
-    prevItems=items;
-    prevDatetm=currDatetm;
+    // prevItems 업데이트 — 수집 완료 시 또는 첫 로드
+    if(callCount<=1||getIntervalMin(currDatetm)!==null){
+      // sessionStorage에 현재 prevItems 저장 (다음 F5때 비교 기준)
+      if(prevItems&&prevDatetm) saveSession(prevItems, prevDatetm);
+      prevItems=items;
+      prevDatetm=currDatetm;
+    }
   }catch(err){
     console.error('loadData 오류:',err.message);
     if(callCount===0){
@@ -564,13 +644,28 @@ async function loadData(isManual){
       document.getElementById('errorState').classList.remove('hidden');
     }
   }finally{
-    if(btn){btn._manualDisabled=false;}
+    // 수동 새로고침 버튼 복구 — renderAll 실행 여부와 무관하게
+    if(btn&&isManual){
+      var iMin=getIntervalMin(prevDatetm);
+      if(prevItems&&iMin!==null){
+        btn.disabled=false;
+        btn.innerHTML='&#8635; 새로고침';
+      } else {
+        btn.disabled=true;
+        btn.innerHTML='⏳ 수집 중...';
+      }
+    }
   }
 }
 
 // ── 초기 실행 ─────────────────────────────────────────────
 // 최초 로드
-loadPrevFromCache().then(function(){loadData();});
+// sessionStorage 복원(F5 새로고침) → 없으면 parking.json → API 호출
+if(!loadSession()){
+  loadPrevFromCache().then(function(){loadData();});
+} else {
+  loadData(); // 이미 prevItems 있으므로 바로 API 호출
+}
 
 // 1분 자동 갱신 — Page Visibility API로 백그라운드 복귀 감지
 var autoTimer = setInterval(loadData, 60000);
