@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>인천공항 주차 현황 v2.0.0</title>
+<title>인천공항 주차 현황 v2.0.1</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Oswald:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#0a1628;--blue:#1e5fbd;--sky:#3399ff;--sky-light:#66bbff;--gold:#f0b400;--green:#00cc77;--orange:#ff6633;--red:#ff2244;--white:#f0f6ff;--muted:#7a9cc0;--card-bg:rgba(15,32,68,0.85);--border:rgba(51,153,255,0.2);}
@@ -144,7 +144,7 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
     <div class="logo">&#9992;</div>
     <div class="htitle">
       <h1>INCHEON AIRPORT PARKING</h1>
-      <p>교통시설팀 · 내부 운영자용 <span style="color:rgba(255,255,255,0.3);font-size:9px;margin-left:4px;">v2.0.0</span></p>
+      <p>교통시설팀 · 내부 운영자용 <span style="color:rgba(255,255,255,0.3);font-size:9px;margin-left:4px;">v2.0.1</span></p>
     </div>
   </div>
   <div class="hr">
@@ -368,14 +368,14 @@ function renderMetrics(delta,eta,rate,avail,floor){
   }
   var eClass='mf',eText='수집 중 (5분 소요)';
   if(delta!==null){
-    if(rate>=110){eClass='mur';eText='초과중';}
-    else if(rate>=95){eClass='mur';eText='만차';}
-    else if(eta!==null){
+    if(rate>=111){eClass='mur';eText='초과중';}
+    else if(rate>=100&&delta>0){eClass='mur';eText='만차';}
+    else if(eta!==null&&delta>0){
       if(eta<=10){eClass='mur';eText='약 '+eta+'분 후 만차';}
       else if(eta<=30){eClass='mw';eText='약 '+eta+'분 후 만차';}
-      else{eClass='ms';eText='약 '+eta+'분 소요';}
+      else{eClass='ms';eText='약 '+eta+'분 후 만차';}
     } else if(delta===0){
-      eClass='ms';eText='현재 유지';
+      eClass='mf';eText='현재 유지';
     } else {
       eClass='ms';eText='감소 중';
     }
