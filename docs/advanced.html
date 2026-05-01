@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>인천공항 주차 현황 v1.3.2</title>
+<title>인천공항 주차 현황 v1.3.4</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Oswald:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#0a1628;--blue:#1e5fbd;--sky:#3399ff;--sky-light:#66bbff;--gold:#f0b400;--green:#00cc77;--orange:#ff6633;--red:#ff2244;--white:#f0f6ff;--muted:#7a9cc0;--card-bg:rgba(15,32,68,0.85);--border:rgba(51,153,255,0.2);}
@@ -142,7 +142,7 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
     <div class="logo">&#9992;</div>
     <div class="htitle">
       <h1>INCHEON AIRPORT PARKING</h1>
-      <p>교통시설팀 · 내부 운영자용 <span style="color:rgba(255,255,255,0.3);font-size:9px;margin-left:4px;">v1.3.2</span></p>
+      <p>교통시설팀 · 내부 운영자용 <span style="color:rgba(255,255,255,0.3);font-size:9px;margin-left:4px;">v1.3.4</span></p>
     </div>
   </div>
   <div class="hr">
@@ -555,6 +555,27 @@ function getLogCount(){
   try{return JSON.parse(localStorage.getItem(LOG_KEY)||'[]').length;}catch(e){return 0;}
 }
 
+// ── sessionStorage — 페이지 새로고침 시 이전 데이터 복원 ──
+function saveSession(items, datetm){
+  try{
+    sessionStorage.setItem('prev_items', JSON.stringify(items));
+    sessionStorage.setItem('prev_datetm', datetm||'');
+  }catch(e){}
+}
+function loadSession(){
+  try{
+    var items=JSON.parse(sessionStorage.getItem('prev_items')||'null');
+    var datetm=sessionStorage.getItem('prev_datetm')||'';
+    if(items&&items.length&&datetm){
+      prevItems=items;
+      prevDatetm=datetm;
+      console.log('sessionStorage 복원: '+items.length+'개, 시각='+datetm);
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+
 // ── parking.json 캐시 로드 ────────────────────────────────
 async function loadPrevFromCache(){
   try{
@@ -606,6 +627,7 @@ async function loadData(isManual){
     if(callCount<=1||getIntervalMin(currDatetm)!==null){
       prevItems=items;
       prevDatetm=currDatetm;
+      saveSession(items, currDatetm); // 페이지 새로고침 대비 저장
     }
   }catch(err){
     console.error('loadData 오류:',err.message);
@@ -621,7 +643,12 @@ async function loadData(isManual){
 
 // ── 초기 실행 ─────────────────────────────────────────────
 // 최초 로드
-loadPrevFromCache().then(function(){loadData();});
+// sessionStorage 복원(F5 새로고침) → 없으면 parking.json → API 호출
+if(!loadSession()){
+  loadPrevFromCache().then(function(){loadData();});
+} else {
+  loadData(); // 이미 prevItems 있으므로 바로 API 호출
+}
 
 // 1분 자동 갱신 — Page Visibility API로 백그라운드 복귀 감지
 var autoTimer = setInterval(loadData, 60000);
