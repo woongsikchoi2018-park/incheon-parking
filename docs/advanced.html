@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>인천공항 주차 현황 v2.1.0</title>
+<title>인천공항 주차 현황 v2.1.2</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Oswald:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#0a1628;--blue:#1e5fbd;--sky:#3399ff;--sky-light:#66bbff;--gold:#f0b400;--green:#00cc77;--orange:#ff6633;--red:#ff2244;--white:#f0f6ff;--muted:#7a9cc0;--card-bg:rgba(15,32,68,0.85);--border:rgba(51,153,255,0.2);}
@@ -57,17 +57,26 @@ main{position:relative;z-index:1;padding:20px 32px;max-width:1400px;margin:0 aut
 /* 요약카드 */
 .srow{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
 .sc{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:15px 18px;position:relative;overflow:hidden;backdrop-filter:blur(10px);}
-.sc-top{display:flex;align-items:center;gap:10px;margin-bottom:4px;}
+.sc-top{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
 .sc-rate{font-family:'Oswald',sans-serif;font-size:34px;font-weight:700;line-height:1;flex-shrink:0;}
 .sc-t1 .sc-rate{color:var(--sky-light);}
 .sc-t2 .sc-rate{color:var(--gold);}
 .sc-total .sc-rate{color:var(--green);}
-.sc-cats{display:flex;flex-direction:column;gap:4px;justify-content:center;}
-.sc-cat{font-size:13px;font-weight:600;color:var(--white);letter-spacing:0.5px;}
-.sc-cat span{font-family:'Oswald',sans-serif;font-size:15px;margin-left:4px;}
+.sc-right{display:flex;gap:8px;flex:1;align-items:stretch;}
+.sc-divider-v{width:1px;background:rgba(255,255,255,0.08);flex-shrink:0;}
+.sc-cats{display:flex;flex-direction:column;gap:3px;justify-content:center;flex-shrink:0;}
+.sc-cat{display:flex;align-items:center;gap:4px;font-size:10px;white-space:nowrap;}
+.sc-cat-label{color:var(--muted);}
+.sc-cat span{font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;}
 .sc-cat.long span{color:var(--sky-light);}
 .sc-cat.short span{color:var(--gold);}
 .sc-cat.res span{color:var(--green);}
+.sc-stats{display:flex;flex-direction:column;gap:3px;justify-content:center;flex:1;}
+.sc-stat-row{display:flex;align-items:center;gap:4px;font-size:10px;white-space:nowrap;}
+.sc-stat-label{color:var(--muted);min-width:44px;}
+.sc-stat-val{font-family:'Oswald',sans-serif;font-size:12px;color:var(--white);}
+.sc-stat-val.avail{color:var(--green);}
+.sc-stat-val.parked{color:var(--sky-light);}
 .sc-total{background:rgba(8,48,42,0.97);border-color:rgba(0,204,119,0.5);box-shadow:0 0 16px rgba(0,204,119,0.1);}
 .sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
 .sc-t1::before{background:linear-gradient(90deg,var(--sky),transparent);}
@@ -82,7 +91,7 @@ main{position:relative;z-index:1;padding:20px 32px;max-width:1400px;margin:0 aut
 .ssub{font-size:11px;color:var(--muted);margin-bottom:6px;}
 .smrow{display:flex;gap:5px;flex-wrap:wrap;}
 .sdet{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;}
-.sspark{margin:4px 0 2px;}
+.sspark{margin:4px 0 3px;display:flex;align-items:center;}
 .det-item{font-size:12px;font-weight:600;background:rgba(255,255,255,0.06);border-radius:4px;padding:3px 8px;color:var(--sky-light);}
 .smbadge{font-family:'Share Tech Mono',monospace;font-size:11px;background:rgba(0,0,0,0.3);border-radius:6px;padding:4px 8px;white-space:nowrap;border:1px solid rgba(255,255,255,0.06);color:var(--muted);}
 .sm-up{color:var(--orange);border-color:rgba(255,102,51,0.3);}
@@ -156,7 +165,7 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
     <div class="logo">&#9992;</div>
     <div class="htitle">
       <h1>INCHEON AIRPORT PARKING</h1>
-      <p>교통시설팀 · 내부 운영자용 <span style="color:rgba(255,255,255,0.3);font-size:9px;margin-left:4px;">v2.1.0</span></p>
+      <p>교통시설팀 · 내부 운영자용 <span style="color:rgba(255,255,255,0.3);font-size:9px;margin-left:4px;">v2.1.2</span></p>
     </div>
   </div>
   <div class="hr">
@@ -185,13 +194,21 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
         <div class="slabel">전체 주차장</div>
         <div class="sc-top">
           <div class="sc-rate" id="totalRate">--%</div>
-          <div class="sc-cats" id="totalDetail">
-            <div class="sc-cat long">장기 <span>--%</span></div>
-            <div class="sc-cat short">단기 <span>--%</span></div>
-            <div class="sc-cat res">예약 <span>--%</span></div>
+          <div class="sc-right">
+            <div class="sc-divider-v"></div>
+            <div class="sc-cats" id="totalDetail">
+              <div class="sc-cat long"><span class="sc-cat-label">장기</span><span>--%</span></div>
+              <div class="sc-cat short"><span class="sc-cat-label">단기</span><span>--%</span></div>
+              <div class="sc-cat res"><span class="sc-cat-label">예약</span><span>--%</span></div>
+            </div>
+            <div class="sc-divider-v"></div>
+            <div class="sc-stats">
+              <div class="sc-stat-row"><span class="sc-stat-label">주차대수</span><span class="sc-stat-val parked" id="totalParked">--</span></div>
+              <div class="sc-stat-row"><span class="sc-stat-label">주차면수</span><span class="sc-stat-val" id="totalArea">--</span></div>
+              <div class="sc-stat-row"><span class="sc-stat-label">여유면수</span><span class="sc-stat-val avail" id="totalAvail">--</span></div>
+            </div>
           </div>
         </div>
-        <div class="ssub" id="totalSub">-- / -- 면</div>
         <div class="sspark" id="totalSpark"></div>
         <div class="smrow">
           <span class="smbadge sm-flat" id="totalDelta">↔ 수집중</span>
@@ -203,13 +220,21 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
         <div class="slabel">제1여객터미널 · T1</div>
         <div class="sc-top">
           <div class="sc-rate" id="t1Rate">--%</div>
-          <div class="sc-cats" id="t1Detail">
-            <div class="sc-cat long">장기 <span>--%</span></div>
-            <div class="sc-cat short">단기 <span>--%</span></div>
-            <div class="sc-cat res">예약 <span>--%</span></div>
+          <div class="sc-right">
+            <div class="sc-divider-v"></div>
+            <div class="sc-cats" id="t1Detail">
+              <div class="sc-cat long"><span class="sc-cat-label">장기</span><span>--%</span></div>
+              <div class="sc-cat short"><span class="sc-cat-label">단기</span><span>--%</span></div>
+              <div class="sc-cat res"><span class="sc-cat-label">예약</span><span>--%</span></div>
+            </div>
+            <div class="sc-divider-v"></div>
+            <div class="sc-stats">
+              <div class="sc-stat-row"><span class="sc-stat-label">주차대수</span><span class="sc-stat-val parked" id="t1Parked">--</span></div>
+              <div class="sc-stat-row"><span class="sc-stat-label">주차면수</span><span class="sc-stat-val" id="t1Area">--</span></div>
+              <div class="sc-stat-row"><span class="sc-stat-label">여유면수</span><span class="sc-stat-val avail" id="t1Avail">--</span></div>
+            </div>
           </div>
         </div>
-        <div class="ssub" id="t1Sub">-- / -- 면</div>
         <div class="sspark" id="t1Spark"></div>
         <div class="smrow">
           <span class="smbadge sm-flat" id="t1Delta">↔ 수집중</span>
@@ -221,13 +246,21 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
         <div class="slabel">제2여객터미널 · T2</div>
         <div class="sc-top">
           <div class="sc-rate" id="t2Rate">--%</div>
-          <div class="sc-cats" id="t2Detail">
-            <div class="sc-cat long">장기 <span>--%</span></div>
-            <div class="sc-cat short">단기 <span>--%</span></div>
-            <div class="sc-cat res">예약 <span>--%</span></div>
+          <div class="sc-right">
+            <div class="sc-divider-v"></div>
+            <div class="sc-cats" id="t2Detail">
+              <div class="sc-cat long"><span class="sc-cat-label">장기</span><span>--%</span></div>
+              <div class="sc-cat short"><span class="sc-cat-label">단기</span><span>--%</span></div>
+              <div class="sc-cat res"><span class="sc-cat-label">예약</span><span>--%</span></div>
+            </div>
+            <div class="sc-divider-v"></div>
+            <div class="sc-stats">
+              <div class="sc-stat-row"><span class="sc-stat-label">주차대수</span><span class="sc-stat-val parked" id="t2Parked">--</span></div>
+              <div class="sc-stat-row"><span class="sc-stat-label">주차면수</span><span class="sc-stat-val" id="t2Area">--</span></div>
+              <div class="sc-stat-row"><span class="sc-stat-label">여유면수</span><span class="sc-stat-val avail" id="t2Avail">--</span></div>
+            </div>
           </div>
         </div>
-        <div class="ssub" id="t2Sub">-- / -- 면</div>
         <div class="sspark" id="t2Spark"></div>
         <div class="smrow">
           <span class="smbadge sm-flat" id="t2Delta">↔ 수집중</span>
@@ -301,7 +334,8 @@ function getCardClass(r){
 function sparkline(floor){
   var hist=deltaHistory[floor];
   if(!hist||hist.length<2)return '';
-  var W=70,H=30,barW=4,gap=2;
+  var isSum=floor.charAt(0)==='_';
+  var W=isSum?90:70,H=isSum?24:30,barW=isSum?5:4,gap=isSum?2:2;
   var absMax=0;
   hist.forEach(function(v){if(Math.abs(v)>absMax)absMax=Math.abs(v);});
   if(absMax===0)absMax=1;
@@ -525,12 +559,16 @@ function renderAll(items,currDatetm,isManual){
 
   // 요약카드
   var s1=sumItems(t1),s2=sumItems(t2),st=sumItems(items);
-  document.getElementById('t1Rate').textContent=s1.rate+'%';
-  document.getElementById('t1Sub').textContent=s1.parked.toLocaleString()+'대 / '+s1.area.toLocaleString()+'면 ('+s1.avail.toLocaleString()+'면 여유)';
-  document.getElementById('t2Rate').textContent=s2.rate+'%';
-  document.getElementById('t2Sub').textContent=s2.parked.toLocaleString()+'대 / '+s2.area.toLocaleString()+'면 ('+s2.avail.toLocaleString()+'면 여유)';
-  document.getElementById('totalRate').textContent=st.rate+'%';
-  document.getElementById('totalSub').textContent=st.parked.toLocaleString()+'대 / '+st.area.toLocaleString()+'면 ('+st.avail.toLocaleString()+'면 여유)';
+  function setSummaryCard(id, s){
+    var el=function(i){return document.getElementById(i);};
+    if(el(id+'Rate')) el(id+'Rate').textContent=s.rate+'%';
+    if(el(id+'Parked')) el(id+'Parked').textContent=s.parked.toLocaleString()+'대';
+    if(el(id+'Area'))   el(id+'Area').textContent=s.area.toLocaleString()+'면';
+    if(el(id+'Avail'))  el(id+'Avail').textContent=s.avail.toLocaleString()+'면';
+  }
+  setSummaryCard('t1', s1);
+  setSummaryCard('t2', s2);
+  setSummaryCard('total', st);
   // 세분화 주차율
   function fmtCat(r){return r!==null?r+'%':'--';}
   function setCats(id,s){
@@ -555,6 +593,11 @@ function renderAll(items,currDatetm,isManual){
     updateSmBadge('t1Delta','t1Eta',m1,s1.rate);
     updateSmBadge('t2Delta','t2Eta',m2,s2.rate);
     updateSmBadge('totalDelta','totalEta',mt,st.rate);
+  // 요약카드 스파크라인
+  ['t1','t2','total'].forEach(function(id){
+    var el=document.getElementById(id+'Spark');
+    if(el) el.innerHTML=sparkline('_'+id)||'<span style="font-size:9px;color:var(--muted)">수집중</span>';
+  });
   }
 
   // 탭 opacity
