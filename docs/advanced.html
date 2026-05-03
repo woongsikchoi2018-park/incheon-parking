@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>인천공항 주차 현황 v2.1.2</title>
+<title>인천공항 주차 현황 v2.1.4</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Oswald:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#0a1628;--blue:#1e5fbd;--sky:#3399ff;--sky-light:#66bbff;--gold:#f0b400;--green:#00cc77;--orange:#ff6633;--red:#ff2244;--white:#f0f6ff;--muted:#7a9cc0;--card-bg:rgba(15,32,68,0.85);--border:rgba(51,153,255,0.2);}
@@ -91,7 +91,7 @@ main{position:relative;z-index:1;padding:20px 32px;max-width:1400px;margin:0 aut
 .ssub{font-size:11px;color:var(--muted);margin-bottom:6px;}
 .smrow{display:flex;gap:5px;flex-wrap:wrap;}
 .sdet{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;}
-.sspark{margin:4px 0 3px;display:flex;align-items:center;}
+.sspark{display:inline-flex;align-items:center;margin-left:6px;vertical-align:middle;}
 .det-item{font-size:12px;font-weight:600;background:rgba(255,255,255,0.06);border-radius:4px;padding:3px 8px;color:var(--sky-light);}
 .smbadge{font-family:'Share Tech Mono',monospace;font-size:11px;background:rgba(0,0,0,0.3);border-radius:6px;padding:4px 8px;white-space:nowrap;border:1px solid rgba(255,255,255,0.06);color:var(--muted);}
 .sm-up{color:var(--orange);border-color:rgba(255,102,51,0.3);}
@@ -165,7 +165,7 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
     <div class="logo">&#9992;</div>
     <div class="htitle">
       <h1>INCHEON AIRPORT PARKING</h1>
-      <p>교통시설팀 · 내부 운영자용 <span style="color:rgba(255,255,255,0.3);font-size:9px;margin-left:4px;">v2.1.2</span></p>
+      <p>교통시설팀 · 내부 운영자용 <span style="color:rgba(255,255,255,0.3);font-size:9px;margin-left:4px;">v2.1.4</span></p>
     </div>
   </div>
   <div class="hr">
@@ -197,9 +197,9 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
           <div class="sc-right">
             <div class="sc-divider-v"></div>
             <div class="sc-cats" id="totalDetail">
-              <div class="sc-cat long"><span class="sc-cat-label">장기</span><span>--%</span></div>
-              <div class="sc-cat short"><span class="sc-cat-label">단기</span><span>--%</span></div>
-              <div class="sc-cat res"><span class="sc-cat-label">예약</span><span>--%</span></div>
+              <div class="sc-cat long"><span class="sc-cat-label">장기P</span><span class="sc-cat-val">--%</span></div>
+              <div class="sc-cat short"><span class="sc-cat-label">단기P</span><span class="sc-cat-val">--%</span></div>
+              <div class="sc-cat res"><span class="sc-cat-label">예약P</span><span class="sc-cat-val">--%</span></div>
             </div>
             <div class="sc-divider-v"></div>
             <div class="sc-stats">
@@ -223,9 +223,9 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
           <div class="sc-right">
             <div class="sc-divider-v"></div>
             <div class="sc-cats" id="t1Detail">
-              <div class="sc-cat long"><span class="sc-cat-label">장기</span><span>--%</span></div>
-              <div class="sc-cat short"><span class="sc-cat-label">단기</span><span>--%</span></div>
-              <div class="sc-cat res"><span class="sc-cat-label">예약</span><span>--%</span></div>
+              <div class="sc-cat long"><span class="sc-cat-label">장기P</span><span class="sc-cat-val">--%</span></div>
+              <div class="sc-cat short"><span class="sc-cat-label">단기P</span><span class="sc-cat-val">--%</span></div>
+              <div class="sc-cat res"><span class="sc-cat-label">예약P</span><span class="sc-cat-val">--%</span></div>
             </div>
             <div class="sc-divider-v"></div>
             <div class="sc-stats">
@@ -249,9 +249,9 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
           <div class="sc-right">
             <div class="sc-divider-v"></div>
             <div class="sc-cats" id="t2Detail">
-              <div class="sc-cat long"><span class="sc-cat-label">장기</span><span>--%</span></div>
-              <div class="sc-cat short"><span class="sc-cat-label">단기</span><span>--%</span></div>
-              <div class="sc-cat res"><span class="sc-cat-label">예약</span><span>--%</span></div>
+              <div class="sc-cat long"><span class="sc-cat-label">장기P</span><span class="sc-cat-val">--%</span></div>
+              <div class="sc-cat short"><span class="sc-cat-label">단기P</span><span class="sc-cat-val">--%</span></div>
+              <div class="sc-cat res"><span class="sc-cat-label">예약P</span><span class="sc-cat-val">--%</span></div>
             </div>
             <div class="sc-divider-v"></div>
             <div class="sc-stats">
@@ -574,11 +574,11 @@ function renderAll(items,currDatetm,isManual){
   function setCats(id,s){
     var el=document.getElementById(id);
     if(!el)return;
-    var spans=el.querySelectorAll('span');
-    if(spans.length>=3){
-      spans[0].textContent=fmtCat(s.longRate);
-      spans[1].textContent=fmtCat(s.shortRate);
-      spans[2].textContent=fmtCat(s.resRate);
+    var vals=el.querySelectorAll('.sc-cat-val');
+    if(vals.length>=3){
+      vals[0].textContent=fmtCat(s.longRate);
+      vals[1].textContent=fmtCat(s.shortRate);
+      vals[2].textContent=fmtCat(s.resRate);
     }
   }
   setCats('t1Detail',s1);
