@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>인천공항 주차 현황 v2.0.2</title>
+<title>인천공항 주차 현황 v2.1.6</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Oswald:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#0a1628;--blue:#1e5fbd;--sky:#3399ff;--sky-light:#66bbff;--gold:#f0b400;--green:#00cc77;--orange:#ff6633;--red:#ff2244;--white:#f0f6ff;--muted:#7a9cc0;--card-bg:rgba(15,32,68,0.85);--border:rgba(51,153,255,0.2);}
@@ -57,6 +57,26 @@ main{position:relative;z-index:1;padding:20px 32px;max-width:1400px;margin:0 aut
 /* 요약카드 */
 .srow{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
 .sc{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:15px 18px;position:relative;overflow:hidden;backdrop-filter:blur(10px);}
+.sc-top{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.sc-rate{font-family:'Oswald',sans-serif;font-size:34px;font-weight:700;line-height:1;flex-shrink:0;}
+.sc-t1 .sc-rate{color:var(--sky-light);}
+.sc-t2 .sc-rate{color:var(--gold);}
+.sc-total .sc-rate{color:var(--green);}
+.sc-right{display:flex;gap:8px;flex:1;align-items:stretch;}
+.sc-divider-v{width:1px;background:rgba(255,255,255,0.08);flex-shrink:0;}
+.sc-cats{display:flex;flex-direction:column;gap:3px;justify-content:center;flex-shrink:0;}
+.sc-cat{display:flex;align-items:center;gap:4px;font-size:10px;white-space:nowrap;}
+.sc-cat-label{color:var(--muted);}
+.sc-cat span{font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;}
+.sc-cat.long span{color:var(--sky-light);}
+.sc-cat.short span{color:var(--gold);}
+.sc-cat.res span{color:var(--green);}
+.sc-stats{display:flex;flex-direction:column;gap:3px;justify-content:center;flex:1;}
+.sc-stat-row{display:flex;align-items:center;gap:4px;font-size:10px;white-space:nowrap;}
+.sc-stat-label{color:var(--muted);min-width:44px;}
+.sc-stat-val{font-family:'Oswald',sans-serif;font-size:12px;color:var(--white);}
+.sc-stat-val.avail{color:var(--green);}
+.sc-stat-val.parked{color:var(--sky-light);}
 .sc-total{background:rgba(8,48,42,0.97);border-color:rgba(0,204,119,0.5);box-shadow:0 0 16px rgba(0,204,119,0.1);}
 .sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
 .sc-t1::before{background:linear-gradient(90deg,var(--sky),transparent);}
@@ -68,11 +88,12 @@ main{position:relative;z-index:1;padding:20px 32px;max-width:1400px;margin:0 aut
 .sc-t1 .sval{color:var(--sky-light);}
 .sc-t2 .sval{color:var(--gold);}
 .sc-total .sval{color:var(--green);}
-.ssub{font-size:10px;color:var(--muted);margin-bottom:8px;}
+.ssub{font-size:11px;color:var(--muted);margin-bottom:6px;}
 .smrow{display:flex;gap:5px;flex-wrap:wrap;}
 .sdet{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;}
-.det-item{font-size:10px;background:rgba(255,255,255,0.06);border-radius:4px;padding:2px 6px;color:var(--sky-light);}
-.smbadge{font-family:'Share Tech Mono',monospace;font-size:10px;background:rgba(0,0,0,0.3);border-radius:6px;padding:3px 7px;white-space:nowrap;border:1px solid rgba(255,255,255,0.06);color:var(--muted);}
+.sspark{display:flex;align-items:center;flex-shrink:0;margin-left:2px;}
+.det-item{font-size:12px;font-weight:600;background:rgba(255,255,255,0.06);border-radius:4px;padding:3px 8px;color:var(--sky-light);}
+.smbadge{font-family:'Share Tech Mono',monospace;font-size:11px;background:rgba(0,0,0,0.3);border-radius:6px;padding:4px 8px;white-space:nowrap;border:1px solid rgba(255,255,255,0.06);color:var(--muted);}
 .sm-up{color:var(--orange);border-color:rgba(255,102,51,0.3);}
 .sm-down{color:var(--green);border-color:rgba(0,204,119,0.3);}
 .sm-flat{color:var(--muted);}
@@ -115,9 +136,9 @@ main{position:relative;z-index:1;padding:20px 32px;max-width:1400px;margin:0 aut
 .gp{font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;line-height:1;}
 .gpu{font-size:8px;color:var(--muted);margin-top:1px;}
 .cs{flex:1;}
-.sr2{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;font-size:11px;}
+.sr2{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;font-size:11px;gap:8px;}
 .sl{color:var(--muted);}
-.sv{font-family:'Oswald',sans-serif;font-size:13px;}
+.sv{font-family:'Oswald',sans-serif;font-size:13px;flex-shrink:0;}
 .sva{color:var(--green);}.svp{color:var(--sky-light);}.svt{color:var(--white);}
 .sbadge{display:inline-block;font-size:9px;letter-spacing:1px;padding:2px 7px;border-radius:20px;font-weight:500;}
 .b-ok{background:rgba(0,204,119,0.12);color:var(--green);border:1px solid rgba(0,204,119,0.3);}
@@ -144,7 +165,7 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
     <div class="logo">&#9992;</div>
     <div class="htitle">
       <h1>INCHEON AIRPORT PARKING</h1>
-      <p>교통시설팀 · 내부 운영자용 <span style="color:rgba(255,255,255,0.3);font-size:9px;margin-left:4px;">v2.0.2</span></p>
+      <p>교통시설팀 · 내부 운영자용 <span style="color:rgba(255,255,255,0.3);font-size:9px;margin-left:4px;">v2.1.6</span></p>
     </div>
   </div>
   <div class="hr">
@@ -171,34 +192,79 @@ footer{position:relative;z-index:1;text-align:center;padding:14px;font-size:10px
       <div class="sc sc-total">
         <div class="sico">📊</div>
         <div class="slabel">전체 주차장</div>
-        <div class="sval" id="totalRate">--%</div>
-        <div class="ssub" id="totalSub">-- / -- 면</div>
-        <div class="sdet" id="totalDetail"></div>
+        <div class="sc-top">
+          <div class="sc-rate" id="totalRate">--%</div>
+          <div class="sc-right">
+            <div class="sc-divider-v"></div>
+            <div class="sc-cats" id="totalDetail">
+              <div class="sc-cat long"><span class="sc-cat-label">장기P</span><span class="sc-cat-val">--%</span></div>
+              <div class="sc-cat short"><span class="sc-cat-label">단기P</span><span class="sc-cat-val">--%</span></div>
+              <div class="sc-cat res"><span class="sc-cat-label">예약P</span><span class="sc-cat-val">--%</span></div>
+            </div>
+            <div class="sc-divider-v"></div>
+            <div class="sc-stats">
+              <div class="sc-stat-row"><span class="sc-stat-label">주차대수</span><span class="sc-stat-val parked" id="totalParked">--</span></div>
+              <div class="sc-stat-row"><span class="sc-stat-label">주차면수</span><span class="sc-stat-val" id="totalArea">--</span></div>
+              <div class="sc-stat-row"><span class="sc-stat-label">여유면수</span><span class="sc-stat-val avail" id="totalAvail">--</span></div>
+            </div>
+          </div>
+        </div>
         <div class="smrow">
           <span class="smbadge sm-flat" id="totalDelta">↔ 수집중</span>
           <span class="smbadge sm-flat" id="totalEta">⏱ 수집중</span>
+          <div class="sspark" id="totalSpark"></div>
         </div>
       </div>
       <div class="sc sc-t1">
         <div class="sico">🅿</div>
         <div class="slabel">제1여객터미널 · T1</div>
-        <div class="sval" id="t1Rate">--%</div>
-        <div class="ssub" id="t1Sub">-- / -- 면</div>
-        <div class="sdet" id="t1Detail"></div>
+        <div class="sc-top">
+          <div class="sc-rate" id="t1Rate">--%</div>
+          <div class="sc-right">
+            <div class="sc-divider-v"></div>
+            <div class="sc-cats" id="t1Detail">
+              <div class="sc-cat long"><span class="sc-cat-label">장기P</span><span class="sc-cat-val">--%</span></div>
+              <div class="sc-cat short"><span class="sc-cat-label">단기P</span><span class="sc-cat-val">--%</span></div>
+              <div class="sc-cat res"><span class="sc-cat-label">예약P</span><span class="sc-cat-val">--%</span></div>
+            </div>
+            <div class="sc-divider-v"></div>
+            <div class="sc-stats">
+              <div class="sc-stat-row"><span class="sc-stat-label">주차대수</span><span class="sc-stat-val parked" id="t1Parked">--</span></div>
+              <div class="sc-stat-row"><span class="sc-stat-label">주차면수</span><span class="sc-stat-val" id="t1Area">--</span></div>
+              <div class="sc-stat-row"><span class="sc-stat-label">여유면수</span><span class="sc-stat-val avail" id="t1Avail">--</span></div>
+            </div>
+          </div>
+        </div>
         <div class="smrow">
           <span class="smbadge sm-flat" id="t1Delta">↔ 수집중</span>
           <span class="smbadge sm-flat" id="t1Eta">⏱ 수집중</span>
+          <div class="sspark" id="t1Spark"></div>
         </div>
       </div>
       <div class="sc sc-t2">
         <div class="sico">🅿</div>
         <div class="slabel">제2여객터미널 · T2</div>
-        <div class="sval" id="t2Rate">--%</div>
-        <div class="ssub" id="t2Sub">-- / -- 면</div>
-        <div class="sdet" id="t2Detail"></div>
+        <div class="sc-top">
+          <div class="sc-rate" id="t2Rate">--%</div>
+          <div class="sc-right">
+            <div class="sc-divider-v"></div>
+            <div class="sc-cats" id="t2Detail">
+              <div class="sc-cat long"><span class="sc-cat-label">장기P</span><span class="sc-cat-val">--%</span></div>
+              <div class="sc-cat short"><span class="sc-cat-label">단기P</span><span class="sc-cat-val">--%</span></div>
+              <div class="sc-cat res"><span class="sc-cat-label">예약P</span><span class="sc-cat-val">--%</span></div>
+            </div>
+            <div class="sc-divider-v"></div>
+            <div class="sc-stats">
+              <div class="sc-stat-row"><span class="sc-stat-label">주차대수</span><span class="sc-stat-val parked" id="t2Parked">--</span></div>
+              <div class="sc-stat-row"><span class="sc-stat-label">주차면수</span><span class="sc-stat-val" id="t2Area">--</span></div>
+              <div class="sc-stat-row"><span class="sc-stat-label">여유면수</span><span class="sc-stat-val avail" id="t2Avail">--</span></div>
+            </div>
+          </div>
+        </div>
         <div class="smrow">
           <span class="smbadge sm-flat" id="t2Delta">↔ 수집중</span>
           <span class="smbadge sm-flat" id="t2Eta">⏱ 수집중</span>
+          <div class="sspark" id="t2Spark"></div>
         </div>
       </div>
     </div>
@@ -268,7 +334,8 @@ function getCardClass(r){
 function sparkline(floor){
   var hist=deltaHistory[floor];
   if(!hist||hist.length<2)return '';
-  var W=70,H=30,barW=4,gap=2;
+  var isSum=floor.charAt(0)==='_';
+  var W=isSum?90:70,H=isSum?24:30,barW=isSum?5:4,gap=isSum?2:2;
   var absMax=0;
   hist.forEach(function(v){if(Math.abs(v)>absMax)absMax=Math.abs(v);});
   if(absMax===0)absMax=1;
@@ -345,7 +412,7 @@ function calcMetrics(floor,currP,currA,currDatetm){
 }
 
 // ── 터미널 합산 증감 계산 ─────────────────────────────────
-function calcTermMetrics(list,currDatetm){
+function calcTermMetrics(list,currDatetm,histKey){
   if(!prevItems)return null;
   var iMin=getIntervalMin(currDatetm);
   if(iMin===null)return null;
@@ -362,6 +429,12 @@ function calcTermMetrics(list,currDatetm){
   var delta5=Math.round(delta*(5/iMin));
   var avail=Math.max(0,currA-currP);
   var eta=delta5>0&&avail>0?Math.round(avail/(delta5/5)):null;
+  // 요약카드용 이력 저장
+  if(histKey){
+    if(!deltaHistory[histKey])deltaHistory[histKey]=[];
+    deltaHistory[histKey].push(delta5);
+    if(deltaHistory[histKey].length>15)deltaHistory[histKey].shift();
+  }
   return{delta:delta5,eta:eta,avail:avail};
 }
 
@@ -371,7 +444,7 @@ function renderMetrics(delta,eta,rate,avail,floor){
   if(delta!==null){
     if(delta>0){dClass='mu';dArrow='↑';dText='+'+delta+'대/5분';}
     else if(delta<0){dClass='md';dArrow='↓';dText=delta+'대/5분';}
-    else{dClass='mf';dArrow='=';dText='0대/5분';}
+    else{dClass='mf';dArrow='';dText='<svg width="10" height="10" viewBox="0 0 10 10" style="vertical-align:middle;margin:0 3px"><polygon points="5,0 10,5 5,10 0,5" fill="#7a9cc0"/></svg>0대/5분';}
   }
   var eClass='mf',eText='수집 중 (5분 소요)';
   if(delta!==null){
@@ -390,8 +463,8 @@ function renderMetrics(delta,eta,rate,avail,floor){
   var spark = sparkline(floor||'');
   return '<div class="cf">'+
     '<div class="mb"><div class="mbl">순증감 (5분)</div><div class="mbv '+dClass+'">'+dArrow+' '+dText+'</div></div>'+
-    '<div class="mb" style="padding:4px 4px"><div class="mbl">증감 추이</div><div class="mb-spark">'+(spark||'<span style="color:var(--muted);font-size:10px">수집중</span>')+'</div></div>'+
     '<div class="mb"><div class="mbl">만차까지 예상</div><div class="mbv '+eClass+'">'+eText+'</div></div>'+
+    '<div class="mb" style="padding:4px 4px"><div class="mbl">증감 추이</div><div class="mb-spark">'+(spark||'<span style="color:var(--muted);font-size:10px">수집중</span>')+'</div></div>'+
   '</div>';
 }
 
@@ -456,7 +529,7 @@ function updateSmBadge(idDelta,idEta,m,rate){
   // delta
   if(m.delta>0){dEl.textContent='↑ +'+m.delta+'대/5분';dEl.className='smbadge sm-up';}
   else if(m.delta<0){dEl.textContent='↓ '+m.delta+'대/5분';dEl.className='smbadge sm-down';}
-  else{dEl.textContent='= 0대/5분';dEl.className='smbadge sm-flat';}
+  else{dEl.innerHTML='<svg width="10" height="10" viewBox="0 0 10 10" style="vertical-align:middle;margin-right:3px"><polygon points="5,0 10,5 5,10 0,5" fill="#7a9cc0"/></svg>0대/5분';dEl.className='smbadge sm-flat';}
   // eta
   if(rate>=111){eEl.textContent='⚠️ 초과중';eEl.className='smbadge sm-urgent';}
   else if(rate>=100){eEl.textContent='⏱ 만차';eEl.className='smbadge sm-urgent';}
@@ -486,35 +559,45 @@ function renderAll(items,currDatetm,isManual){
 
   // 요약카드
   var s1=sumItems(t1),s2=sumItems(t2),st=sumItems(items);
-  document.getElementById('t1Rate').textContent=s1.rate+'%';
-  document.getElementById('t1Sub').textContent=s1.parked.toLocaleString()+'대 / '+s1.area.toLocaleString()+'면 ('+s1.avail.toLocaleString()+'면 여유)';
-  document.getElementById('t2Rate').textContent=s2.rate+'%';
-  document.getElementById('t2Sub').textContent=s2.parked.toLocaleString()+'대 / '+s2.area.toLocaleString()+'면 ('+s2.avail.toLocaleString()+'면 여유)';
-  document.getElementById('totalRate').textContent=st.rate+'%';
-  document.getElementById('totalSub').textContent=st.parked.toLocaleString()+'대 / '+st.area.toLocaleString()+'면 ('+st.avail.toLocaleString()+'면 여유)';
+  function setSummaryCard(id, s){
+    var el=function(i){return document.getElementById(i);};
+    if(el(id+'Rate')) el(id+'Rate').textContent=s.rate+'%';
+    if(el(id+'Parked')) el(id+'Parked').textContent=s.parked.toLocaleString()+'대';
+    if(el(id+'Area'))   el(id+'Area').textContent=s.area.toLocaleString()+'면';
+    if(el(id+'Avail'))  el(id+'Avail').textContent=s.avail.toLocaleString()+'면';
+  }
+  setSummaryCard('t1', s1);
+  setSummaryCard('t2', s2);
+  setSummaryCard('total', st);
   // 세분화 주차율
   function fmtCat(r){return r!==null?r+'%':'--';}
-  document.getElementById('t1Detail').innerHTML=
-    '<span class="det-item">장기 '+fmtCat(s1.longRate)+'</span>'+
-    '<span class="det-item">단기 '+fmtCat(s1.shortRate)+'</span>'+
-    '<span class="det-item">예약 '+fmtCat(s1.resRate)+'</span>';
-  document.getElementById('t2Detail').innerHTML=
-    '<span class="det-item">장기 '+fmtCat(s2.longRate)+'</span>'+
-    '<span class="det-item">단기 '+fmtCat(s2.shortRate)+'</span>'+
-    '<span class="det-item">예약 '+fmtCat(s2.resRate)+'</span>';
-  document.getElementById('totalDetail').innerHTML=
-    '<span class="det-item">장기 '+fmtCat(st.longRate)+'</span>'+
-    '<span class="det-item">단기 '+fmtCat(st.shortRate)+'</span>'+
-    '<span class="det-item">예약 '+fmtCat(st.resRate)+'</span>';
+  function setCats(id,s){
+    var el=document.getElementById(id);
+    if(!el)return;
+    var vals=el.querySelectorAll('.sc-cat-val');
+    if(vals.length>=3){
+      vals[0].textContent=fmtCat(s.longRate);
+      vals[1].textContent=fmtCat(s.shortRate);
+      vals[2].textContent=fmtCat(s.resRate);
+    }
+  }
+  setCats('t1Detail',s1);
+  setCats('t2Detail',s2);
+  setCats('totalDetail',st);
 
   // 요약카드 배지 — 수집 완료 시만 업데이트
   if(iMin!==null){
-    var m1=calcTermMetrics(t1,currDatetm);
-    var m2=calcTermMetrics(t2,currDatetm);
-    var mt=calcTermMetrics(items,currDatetm);
+    var m1=calcTermMetrics(t1,currDatetm,'_t1');
+    var m2=calcTermMetrics(t2,currDatetm,'_t2');
+    var mt=calcTermMetrics(items,currDatetm,'_total');
     updateSmBadge('t1Delta','t1Eta',m1,s1.rate);
     updateSmBadge('t2Delta','t2Eta',m2,s2.rate);
     updateSmBadge('totalDelta','totalEta',mt,st.rate);
+  // 요약카드 스파크라인
+  ['t1','t2','total'].forEach(function(id){
+    var el=document.getElementById(id+'Spark');
+    if(el) el.innerHTML=sparkline('_'+id)||'<span style="font-size:9px;color:var(--muted)">수집중</span>';
+  });
   }
 
   // 탭 opacity
